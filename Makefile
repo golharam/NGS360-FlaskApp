@@ -1,5 +1,8 @@
 NAME=ngs360-flaskapp
-.PHONY: build test run
+.PHONY: build test run clean
+
+clean:
+	rm -rf .coverage .pytest_cache/ __pycache__/ htmlcov/
 
 build:
 	docker build -t $(NAME) .
