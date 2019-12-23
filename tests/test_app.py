@@ -1,12 +1,12 @@
-import pytest
+'''
+Test endpoints in app.blueprint.main
+'''
 from unittest import TestCase
-from app import *
-
-class TestConfig(object):
-    TESTING = True
-    DEBUG = False
+from config import TestConfig
+from app import create_app
 
 class BasicTests(TestCase):
+    ''' Basic test cases '''
     def setUp(self):
         self.app = create_app(TestConfig)
         self.app_context = self.app.app_context()
@@ -23,4 +23,3 @@ class BasicTests(TestCase):
         assert b'Hello!' in res.data
         assert b'<b>Testing:</b> True' in res.data
         assert b'<b>Debug:</b> False' in res.data
-

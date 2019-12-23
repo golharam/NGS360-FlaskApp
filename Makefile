@@ -2,14 +2,18 @@ NAME=ngs360-flaskapp
 .PHONY: build test run clean
 
 clean:
-	rm -rf .coverage .pytest_cache/ __pycache__/ htmlcov/
+	rm -rf config.pyc .coverage .pytest_cache/ __pycache__/ htmlcov/ .venv/ .env
 
-build:
+build: clean
 	docker build -t $(NAME) .
 
-test: build
-	docker run --rm $(NAME) python -m pytest tests/
+env: requirements.txt requirements-dev.txt
+	python3 -m venv .venv
+	source .venv/bin/activate && pip install -r requirements.txt && pip install -r requirements-dev.txt
 
-run: build
-	docker run --rm -t -p 5000:5000 $(NAME)
+test: env
+	source .venv/bin/activate && python -m pytest --cov app/ && coverage html && pylint app tests
 
+run: env
+	echo "FLASK_ENV=development" > .env
+	source .venv/bin/activate && python application.py

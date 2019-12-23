@@ -1,7 +1,7 @@
-import os
-
-class Config(object):
+# https://flask.palletsprojects.com/en/1.1.x/config/
+class DefaultConfig:
     ''' Default config settings that can be overridden '''
-    TESTING = os.getenv('TESTING', False)
-    DEBUG = os.getenv('DEBUG', True)
+    TESTING = False
 
+class TestConfig:
+    TESTING = True
