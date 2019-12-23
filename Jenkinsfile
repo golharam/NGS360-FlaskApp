@@ -1,17 +1,37 @@
 pipeline {
-  agent any
+  agent {
+    docker { image 'python:3-alpine' }
+  }
   stages {
-    stage('Test') {
-      agent { dockerfile true }
+    stage("Install Requirements") {
       steps {
-        sh 'python -m pytest tests'
+        withEnv(["HOME=${env.WORKSPACE}"]) {
+          sh 'pip install --user -r requirements.txt'
+          sh 'pip install --user -r requirements-dev.txt'
+        }
       }
     }
-  } 
-  post {
-    always {
-        sh 'docker system prune -f -a --volumes'
+    stage("Test") {
+      steps {
+        withEnv(["HOME=${env.WORKSPACE}"]) {
+          sh 'python -m pytest --cov app/'
+        }
+      }
+      post {
+        success {
+          withEnv(["HOME=${env.WORKSPACE}"]) {
+            sh '.local/bin/coverage xml'
+            cobertura coberturaReportFile: 'coverage.xml'
+          }
+        }
+      }
+    }
+    stage("Lint") {
+      steps {
+        withEnv(["HOME=${env.WORKSPACE}"]) {
+          sh '.local/bin/pylint app tests'
+        }
+      }
     }
   }
 }
-
