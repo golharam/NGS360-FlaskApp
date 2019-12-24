@@ -14,7 +14,7 @@ pipeline {
     stage("Test") {
       steps {
         withEnv(["HOME=${env.WORKSPACE}"]) {
-          sh 'python -m pytest --cov app/'
+          sh 'python -m pytest -v --cov app/'
         }
       }
       post {
@@ -29,7 +29,7 @@ pipeline {
     stage("Lint") {
       steps {
         withEnv(["HOME=${env.WORKSPACE}"]) {
-          sh '.local/bin/pylint app tests'
+          sh 'PYTHONPATH="." .local/bin/pylint app tests --load-plugins pylintplugins'
         }
       }
     }
