@@ -7,7 +7,13 @@ from logging.handlers import TimedRotatingFileHandler, SMTPHandler
 import os
 
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
 from config import DefaultConfig
+
+DB = SQLAlchemy()
+MIGRATE = Migrate()
 
 def create_app(config_class=DefaultConfig):
     '''
@@ -19,6 +25,9 @@ def create_app(config_class=DefaultConfig):
     app.config.from_object(config_class)
     app.config.from_envvar('FLASK_CONFIG', silent=True)
     app.logger.info('%s loading', app.config['APP_NAME'])
+
+    DB.init_app(app)
+    MIGRATE.init_app(app, DB)
 
     if not app.debug and not app.testing:
         # If FLASK_LOG_FILE and FLASK_LOG_LEVEL env vars defined, set up logging.
