@@ -1,0 +1,127 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <div class="container theme-showcase" role="main">
+        <p>These are runs and projects currently available in BaseSpace.  Select a project to copy to S3.</p>
+
+        <h2 class="sub-header">Runs</h2>
+        <div class="table-responsive">
+            <table id="runlist" class="table table-striped" width="100%">
+                <thead>
+                    <tr>
+                        <th>Archive to S3</th>
+                        <th>Run State</th>
+                        <th>RunID</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+
+        <h2 class="sub-header">Projects</h2>
+        <div class="alert alert-info">
+            This functionality has been moved to the Project page.  Please go to the home page and search for your project to go to the Project page. From the Project page, you can copy data from BaseSpace to S3.
+        </div>
+        <!--
+        <div class="table-responsive">
+            <table id="projectlist" class="table table-striped" width="100%">
+                <thead>
+                    <tr>
+                        <th>Copy FASTQ Files to S3</th>
+                        <th>ProjectID</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        -->
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        $(document).ready( function () {
+                $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
+                var runTable = $('#runlist').DataTable({
+                    ajax: {
+                        url: "/basespace_runs",
+                        dataSrc: ''
+                    },
+                    "columns": [
+                        { sortable: false, "render": function(data, type, full, meta) {
+                            var runID = full.Id;
+                            return '<button type="button" class="btn btn-xs btn-success" onclick="confirmArchiveRunToS3(this)" id="'+runID+'">Archive</button>';
+                          }
+                        },
+                        { "data": "Status" },
+                        { "data": "ExperimentName", "width": "75%" }
+                    ],
+                    "order": [[2, 'asc']]
+                });
+                /*
+                var projectTable = $('#projectlist').DataTable({
+                    ajax: {
+                        url: "/basespace_projects",
+                        dataSrc: ''
+                    },
+                    "columns": [
+                        { sortable: false, "render": function(data, type, full, meta) {
+                            var project = full.Name;
+                            return '<button type="button" class="btn btn-xs btn-success" onclick="confirmCopyProjectToS3(this)" id="'+project+'">Copy</button>';
+                          }
+                        },
+                        { "data": "Name", "width": "75%" }
+                    ],
+                    "order": [[1, 'asc']]
+                });
+                */
+        } );
+        function confirmArchiveRunToS3(button) {
+            var runName = button.id;
+            BootstrapDialog.confirm({
+                title: runName,
+                message: "Archive BaseSpace run to S3?",
+                callback: function(result) {
+                    if (result) {
+                        archiveRunToS3(runName);
+                    }
+                }
+            });
+        }
+        function confirmCopyProjectToS3(button) {
+            var projectid = button.id;
+			if (projectid.startsWith("P-")) {
+                BootstrapDialog.show({
+                    title: projectid,
+                    message: "This functionality is now available on the project page."
+                });
+		    } else {
+				alert("Project Name must be P-########-####");
+			}
+        }
+        function copyProjectToS3(projectid) {
+            $.get("/copyBaseSpaceProjectToS3/" + projectid, function(data) {
+                if (('status' in data) && (data['status'] == 'ERROR')) {
+                    alert(data['log'])
+                } else {
+                    jobName = data['jobName'];
+                    jobId = data['jobId'];
+                    showJobStatusDialog("Copying fastq files to S3", jobName, jobId);
+                }
+            }).fail(function () {
+                alert('Please close it and refresh the website.');
+            });
+        }
+        function archiveRunToS3(runname) {
+            $.get("/archiveRun/" + runname, function(data) {
+                if (('status' in data) && (data['status'] == 'ERROR')) {
+                    alert(data['log'])
+                } else {
+                    jobName = data['jobName'];
+                    jobId = data['jobId'];
+                    showJobStatusDialog("Archiving BaseSpace run to S3", jobName, jobId);
+                }
+            }).fail(function () {
+                alert('Unable to connect to server.  Please refresh the page and try again.');
+            });
+        }
+    </script>
+{% endblock %}

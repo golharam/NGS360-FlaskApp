@@ -18,12 +18,42 @@ class BasicTests(TestCase):
         self.client = None
         self.app_context.pop()
 
-    def test_root(self):
-        ''' Test the default route. '''
+    def test_index(self):
+        ''' Test / '''
         res = self.client.get('/')
-        assert b'Hello!' in res.data
-        assert b'<b>Testing:</b> True' in res.data
-        assert b'<b>Debug:</b> False' in res.data
+        assert b'<title>NGS 360</title>' in res.data
+
+    def test_basespace(self):
+        ''' Test /basespace '''
+        res = self.client.get('/basespace')
+        assert res.status_code == 200
+
+    def test_jobs(self):
+        ''' Test /jobs '''
+        res = self.client.get('/jobs')
+        assert res.status_code == 200
+
+    def test_jobs_user_in_request(self):
+        ''' Test /jobs '''
+        res = self.client.get('/jobs?username=testuser')
+        assert res.status_code == 200
+
+    def test_jobs_user_in_session(self):
+        ''' Test /jobs '''
+        with self.client.session_transaction() as sess:
+            sess['username'] = 'testuser'
+        res = self.client.get('/jobs')
+        assert res.status_code == 200
+
+    def test_illumina_runs(self):
+        ''' Test /illumina_runs '''
+        res = self.client.get('/illumina_runs')
+        assert res.status_code == 200
+
+    def test_projects(self):
+        ''' Test /projects '''
+        res = self.client.get('/projects')
+        assert res.status_code == 200
 
 def test_file_logging():
     ''' Make sure file logging is set up '''

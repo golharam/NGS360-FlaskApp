@@ -1,0 +1,145 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="/static/starter-template.css" />
+{% endblock %}
+
+{% block body %}
+<div class="container" style="margin-top: 70px;">
+    <div class="starter-template">
+        <h1 class="ngsTitle" style="font-weight: bold; font-size: 75px">NGS 360</h1>
+        <br />
+        <div id="form-ngsSearchbar" name="form-ngsSearchbar" >
+            <div class="typeahead__container">
+                <div class="typeahead__field">
+                    <span class="typeahead__query">
+                    <input class="ngsSearchbar" data-placement="bottom" type="search" id="ngsSearchbar" placeholder="Loading Project List" autocomplete="off">
+                    </span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<footer class="footer" style="text-align:center">
+    <!--
+    <div>
+        <table style="margin: 0 auto" class="status-table">
+            <tr>
+                <td style="padding-right: 10px"><a href='https://jenkins-ci.pri.bms.com:8443/job/BaseSpace%20Uptime%20Monitor/'><img class="serverIcon" src='https://jenkins-ci.pri.bms.com:8443/job/BaseSpace%20Uptime%20Monitor/statusbadges-server/icon'></a></td>
+                <td align="left" style="padding-right: 20px">BaseSpace</td>
+                <td style="padding-right: 10px"><a href='https://jenkins-ci.pri.bms.com:8443/job/ProjectRegistry%20Uptime%20Monitor/'><img class="serverIcon" src='https://jenkins-ci.pri.bms.com:8443/job/ProjectRegistry%20Uptime%20Monitor/statusbadges-server/icon'></a></td>
+                <td align="left">Project Registry</td>
+            </tr>
+            <tr>
+                <td style="padding-right: 10px"><a href='https://jenkins-ci.pri.bms.com:8443/job/SevenBridges%20Uptime%20Monitor/'><img class="serverIcon" src='https://jenkins-ci.pri.bms.com:8443/job/SevenBridges%20Uptime%20Monitor/statusbadges-server/icon'></a></td>
+                <td align="left" style="padding-right: 20px">SevenBridges</td>
+                <td style="padding-right: 10px"><a href='https://jenkins-ci.pri.bms.com:8443/job/Xpress%20Uptime%20Monitor/'><img class="serverIcon" src='https://jenkins-ci.pri.bms.com:8443/job/Xpress%20Uptime%20Monitor/statusbadges-server/icon'></a></td>
+                <td align="left">Xpress</td>
+            </tr>
+        </table>
+    </div>
+
+    <br>
+    -->
+    <span class="documentation">Help documents can be found here: <a href="https://biodoc.pri.bms.com:8443/display/NWP/NGS+360+Documents">NGS 360 Documents</a></span><br />
+</footer>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    $(document).ready( function () {
+        $.ajax({
+            'type': 'GET',
+            'url': '/projectregistry_json?fields=projectid,projectname',
+            'success' : function(data) {
+                $('.ngsSearchbar').attr("placeholder", "Search by Project ID or Name");
+                var result = [];
+                for(var i=0; i< data.length; i++){
+                    result[i] = data[i].projectid + " " + data[i].projectname;
+                }
+                $.typeahead({
+                    input: '.ngsSearchbar',
+                    minLength: 1,
+                    maxItem: 5,
+                    order: "asc",
+                    hint: true,
+                    source: {
+                            data: result,
+                    },
+                    callback: {
+                        onClick: function (node, a, item, event) {
+                            var strID = item.display.substring(0, item.display.indexOf(" "));
+                            window.location.href = "/projects/" + strID;
+
+                            var userinput = $(".ngsSearchbar").val();
+                            var flagOnSearch = false;
+                            for(var i=0; i < result.length; i++){
+                                if(userinput == result[i]){
+                                    flagOnSearch = true;
+                                }
+                            }
+                            if(flagOnSearch){
+                                var strID = item.display.substring(0, item.display.indexOf(" "));
+                                window.location.href = "/projects/" + strID;
+                            }
+                        }
+                    }
+                });
+
+                $('.ngsSearchbar').focus();
+
+
+                $('.ngsSearchbar').keyup(function (e) {
+                    if(e.keyCode === 13) {
+                        var userinput = $(".ngsSearchbar").val();
+                        var flagOnSearch = false;
+                        for (var i = 0; i < result.length; i++) {
+                            if (userinput == result[i]) {
+                                flagOnSearch = true;
+                            }
+                        }
+                        if (flagOnSearch || $('.typeahead__item').length == 1) {
+                            if(flagOnSearch) {
+                                var strID = item.display.substring(0, item.display.indexOf(" "));
+                                window.location.href =
+                                    "/projects/" + strID;
+                            }else {
+                                var projectid = $('.typeahead__display').text().substring(0, $('.typeahead__display').text().indexOf(' '));
+                                window.location.href = '/projects/' + projectid;
+                            }
+                        }
+                        else {
+                            window.location.href = "/projects?filter=" + userinput;
+                        }
+                    }
+                });
+            },
+            'error' : function(){
+                console.log('failed to load project information');
+            }
+        });
+
+        // Tour
+        var visited = Cookies.get('toured-v2.1');
+        console.log("Toured-v2.1 cookie is " + visited);
+        if (visited == null) {
+            console.log("Setting cookies and starting tour");
+            Cookies.set('toured-v2.1', 'yes', { expires: 1000000 });
+            Cookies.set('toured-jobs-page', 'yes', { expires: 1000000 });
+            tour.restart();
+        } else {
+            var tour_jobs_page = Cookies.get('toured-jobs-page');
+            console.log("toured-jobs-page cookie is " + tour_jobs_page);
+            if ((tour_jobs_page == null) && (jobs_tour != null)) {
+                console.log("Setting toured-jobs-page cookie and starting tour");
+                Cookies.set('toured-jobs-page', 'yes', { expires: 1000000 });
+                jobs_tour.restart();
+            }
+        }
+    } );
+</script>
+{% endblock %}

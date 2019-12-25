@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="container theme-showcase" role="main">
+    <p>Click a ProjectID to view the Project.</p>
+
+    <div class="table-responsive">
+        <table id="projectlist" class="table table-striped" width="100%">
+            <thead>
+            <tr>
+                <th>Project ID</th>
+                <th>Project Name</th>
+                <th>Business Owner</th>
+                <th>Clinical</th>
+                <th>Created By</th>
+                <th>Created Date</th>
+                <th>Data Owner</th>
+                <th>Department</th>
+                <th>Experiment Type</th>
+                <th>Genome Build</th>
+                <th>RA Code</th>
+                <th>Therapeutic Area</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    $(document).ready( function () {
+        var currentUrl = window.location.href;
+        if (currentUrl.indexOf("?filter=") > -1) {
+            var value = currentUrl.substring(currentUrl.lastIndexOf('/') + 1).slice(16);
+        }
+
+        $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
+
+        var table = $('#projectlist').DataTable({
+            "ajax": {
+                url: "/projectregistry_json",
+                dataSrc: ''
+            },
+            "buttons": [ 'colvis' ],
+            "columns": [
+                {
+                    "data": "projectid",
+                    "width": "20%",
+                    "render": function(data){
+                            data = '<a href="' + "/projects/" + data + '">' + data + '</a>';
+                        return data;
+                    },
+                },
+                { "data": "projectname" },
+                { "data": "businessowner", "visible": false },
+                { "data": "clinical", "visible": false },
+                { "data": "createby", "visible": false },
+                { "data": "createdate", "visible": false },
+                { "data": "dataowner", "visible": false },
+                { "data": "department", "visible": false },
+                { "data": "experimenttype", "visible": false },
+                { "data": "genomebuild", "visible": false },
+                { "data": "racode", "visible": false },
+                { "data": "therapeuticarea", "visible": false }
+            ],
+            "colReorder": true,
+            "deferRender": true,
+            "autoWidth": true,
+            "order": [[0, 'asc']],
+            "initComplete": function(settings, json) {
+                table.buttons().container()
+                    .appendTo( $('.col-sm-6:eq(0)', table.table().container() ) );
+                table.columns.adjust();
+            },
+            search: {
+                search: decodeURI(currentUrl.substring(currentUrl.lastIndexOf('/') + 1).slice(16))
+
+            },
+        });
+    } );
+</script>
+{% endblock %}

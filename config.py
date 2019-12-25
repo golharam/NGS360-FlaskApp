@@ -9,10 +9,22 @@ env var.
 
 # https://flask.palletsprojects.com/en/1.1.x/config/
 '''
+import os
+from dotenv import load_dotenv
+
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(BASEDIR, '.env'))
+
 class DefaultConfig:
     ''' Default config settings that can be overridden '''
     APP_NAME = "NGS360"
+    SECRET_KEY = os.urandom(12)
     TESTING = False
+
+    # For production, define this to a production database
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+        'sqlite:///' + os.path.join(BASEDIR, 'app.db')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # For production, define these env vars:
     # FLASK_LOG_FILE = /path/to/log/file
@@ -29,3 +41,4 @@ class DefaultConfig:
 class TestConfig(DefaultConfig):
     ''' Config settings for unit testing '''
     TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"

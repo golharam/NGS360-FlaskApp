@@ -1,0 +1,82 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="container theme-showcase" role="main">
+    <p>These runs currently available to demultiplex.</p>
+
+    <h2 class="sub-header">Runs</h2>
+    <div class="table-responsive">
+        <table id="illuminaruns" class="table table-striped" width="100%">
+            <thead>
+            <tr>
+                <th>Experiment</th>
+                <th>Instrument</th>
+                <th>Flowcell</th>
+                <th>Run Date</th>
+                <th>Run Folder</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    String.prototype.format = function() {
+      a = this;
+      for (k in arguments) {
+        a = a.replace("{" + k + "}", arguments[k])
+      }
+      return a
+    }
+    function pad(num, size) {
+        var s = num+"";
+        while (s.length < size) s = "0" + s;
+        return s;
+    }
+    $(document).ready( function () {
+        $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
+        var table = $('#illuminaruns').DataTable({
+            "ajax": {
+                url: "/api/v0/runs",
+                'dataSrc': 'runs'
+            },
+            "buttons": [ 'colvis' ],
+            "columns": [
+                {
+                    "data": "experiment_name",
+                    "render": function(data, type, row, meta) {
+                        if (data != "") {
+                            data = '<a href="/illumina_run?runid={0}">{1}</a>'.format(row['id'], data)
+                        } else {
+                            run_date = new Date(row['run_date']).toISOString().slice(2,10).replace(/-/g,"")
+                            exp_name = run_date + "_" + row['machine_id'] + "_" + pad(row['run_number'], 4) + "_" + row['flowcell_id']
+                            data = '<a href="/illumina_run?runid={0}">{1}</a>'.format(row['id'], exp_name)
+                        }
+                        return data;
+                    },
+                },
+                { "data": "machine_id" },
+                { "data": "flowcell_id" },
+                { "data": "run_date",
+                  "render": function(data, type, row, meta) {
+                      var d = new Date(data);
+                      return d.toISOString().slice(0,10);
+                  }
+                },
+                { "data": "s3_run_folder_path", "visible": false }
+            ],
+            "colReorder": true,
+            "deferRender": true,
+            "autoWidth": true,
+            "order": [[3, 'desc']],
+            "initComplete": function(settings, json) {
+                table.buttons().container()
+                    .appendTo( $('.col-sm-6:eq(0)', table.table().container() ) );
+                table.columns.adjust();
+            }
+        });
+    } );
+</script>
+{% endblock %}

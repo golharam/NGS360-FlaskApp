@@ -1,0 +1,206 @@
+{% from "macros.html" import nav_link with context %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="Ryan Golhar (ryan.golhar@bms.com)">
+
+    <title>NGS 360{% block title %}{% endblock %}</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" />
+
+    <!-- Bootstrap with DataTables (jQuery 2.x, Bootstrap, Include Library, DataTables, No Autofill, -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.13/css/dataTables.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/1.2.4/css/buttons.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/colreorder/1.3.2/css/colReorder.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/keytable/2.2.0/css/keyTable.bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Open+Sans">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/css/bootstrap-tour.css">
+    <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap3-dialog/1.34.9/css/bootstrap-dialog.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/ngs.css">
+    <link rel="stylesheet" type="text/css" href="/static/typeahead.css">
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.13/js/dataTables.bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.2.4/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.2.4/js/buttons.bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.2.4/js/buttons.colVis.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/colreorder/1.3.2/js/dataTables.colReorder.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/keytable/2.2.0/js/dataTables.keyTable.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tour/0.11.0/js/bootstrap-tour.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-typeahead/2.10.4/jquery.typeahead.js"></script>
+    <!-- <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script> -->
+    <script type="text/javascript" src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap3-dialog/1.34.9/js/bootstrap-dialog.min.js"></script>
+    <script type="text/javascript" src="/static/js/dataTables.colResize.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap.fd.js"></script>
+    <script type="text/javascript" src="/static/ngs.js"></script>
+    <script type="text/javascript" src="/static/tour.js?v=3"></script>
+
+    <script type="text/javascript">
+        {% if session.username %}
+        userid = returnVar("{{session.username}}")
+        {% else %}
+        userid = ""
+        {% endif %}
+    </script>
+
+    <!-- Jira Issue Collector - Got Feedback? -->
+    <script type="text/javascript" src="https://dashboard.pri.bms.com:8443/s/8d502bf640a39fe856b1ed5db7397eb4-T/ichhbq/73019/b6b48b2829824b869586ac216d119363/2.0.23/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=5adc1c2b"></script>
+    <!-- Jira Issue Collector - Bug Report? -->
+    <script type="text/javascript" src="https://dashboard.pri.bms.com:8443/s/8d502bf640a39fe856b1ed5db7397eb4-T/ichhbq/73019/b6b48b2829824b869586ac216d119363/2.0.23/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=ade0a922"></script>
+
+    {% block head %}
+    {% endblock %}
+  </head>
+
+  <body>
+    <!-- Fixed navbar -->
+    <!-- From: http://stackoverflow.com/questions/21037833/exclude-menu-item-from-the-collapse-of-bootstrap-3-navbar and 
+               http://jsfiddle.net/nomis/n9KtL/1/
+    -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">
+                    <img src="/static/images/circos_color.png" alt="" style="margin-top: -2px;">
+                </a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    {{ nav_link('main.show_basespace', 'BaseSpace') }}
+                    {{ nav_link('main.show_illumina_runs', 'Illumina Runs')}}
+                    {{ nav_link('main.show_projects', 'Projects')}}
+                    <li><a href="http://xpress.pri.bms.com">Xpress</a></li>
+                </ul>
+
+                <!-- Right Navbar -->
+                <ul class="nav navbar-nav navbar-right">
+                    {% if session.username %}
+                    <li class="navbar-text">
+                        <p>
+                            <img src="/static/images/user-circle_orange.svg" alt="" style="margin-right: 10px; display: none">
+                            <span id="userid">{{ session.username }}</span>
+                        </p>
+                    </li>
+                    {% endif %}
+                    <li id="notificationDropDown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+                            <span class="badge" style="background-color: #d9534f" id="numNotifications"></span>
+                        </a>
+                        <ul id="jobList" class="dropdown-menu">
+                            <li role="separator" class="divider"></li>
+                            <li>{{ nav_link('main.show_batch_jobs', 'View All Jobs') }}</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <p class="tourIcon" style="margin: 0; padding: 15px; cursor: pointer"><img src="/static/images/info-blue.png" alt="" onclick="tour.restart();"></p>
+                    </li>
+                </ul>
+
+            </div><!--/.nav-collapse -->
+        </div>
+    </nav>
+    <!-- END Fixed navbar -->
+
+    <div class="container theme-showcase" role="main">
+    {% block body %}
+    {% endblock %}
+    </div><!-- /.container -->
+
+    <script>
+        $().ready(() => {
+            console.log("Running layout::ready()")
+            updateNotificationCount = () => {
+                $.get("/api/v0/users/{{ session.username }}/notifications?seen=False", function (data) {
+                    let numNotifications = 0
+                    data.forEach(notification => {
+                        numNotifications++
+                    })
+                    setNotificationCount(numNotifications)
+                });
+            }
+            updateNotificationCount();
+
+            setNotificationCount = (num) => {
+                if (num == 0) {
+                    num = ''
+                }
+                $("#numNotifications")[0].innerHTML = num
+            }
+
+            // https://stackoverflow.com/questions/12479858/twitter-bootstrap-call-a-js-function-when-a-dropdown-is-closed/18520660
+            $('#notificationDropDown').on('shown.bs.dropdown', function () {
+                numNotifications = $("#numNotifications")[0].innerHTML
+                if (numNotifications > 0) {
+                    $.get("/api/v0/users/{{ session.username }}/notifications/clear")
+                    setNotificationCount(0)
+                }
+            });
+
+            /*
+            var notification_socket = io.connect('http://' + document.domain + ':' + location.port);
+            notification_socket.on('{{session.username}}', function(notification) {
+                updateNotificationCount()
+                getJobNotificationList()
+            });
+            */
+
+            getJobNotificationList = () => {
+                $.get("/api/v0/users/{{ session.username }}/notification_joblist?limit=10&order=desc", function (data) {
+                    populateJobNotifications(data)
+                });
+            }
+            getJobNotificationList();
+
+            populateJobNotifications = (jobs) => {
+                var items = [];
+                $("#jobList")[0].innerHTML = ''
+                $.each(jobs, (idx, job) => {
+                    let msgHTML = ""
+                    if (job['viewed'] == false) {
+                      msgHTML = '<li style="background-color: #EAF2F8">'
+                    } else {
+                      msgHTML = '<li>'
+                    }
+                    msgHTML += '<a href="/jobs/'+job['batchjob_id']+'/log">'+job['name']+'</a></li>'
+                    items.push(msgHTML)
+                });
+                if (items.length == 0) {
+                    items.push('<li><a style="cursor: default" href="#">No New Job Updates</a></li>')
+                }
+                items.push('<li role="separator" class="divider"></li>')
+                items.push('<li><a href="/jobs">View All Jobs</a></li>')
+                $("#jobList").prepend(items.join(''));
+            }
+        })
+    </script>
+
+    {% block scripts %}
+    <script type="text/javascript">
+        $(document).ready( function () {
+            $( '.dropdown-toggle' ).on( 'click', function () {
+                $( '.dropdown-menu' ).find( 'li.active' ).removeClass( 'active' );
+            });
+        })
+    </script>
+    {% endblock %}
+  </body>
+</html>
