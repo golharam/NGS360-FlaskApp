@@ -50,6 +50,11 @@ class BasicTests(TestCase):
         res = self.client.get('/illumina_runs')
         assert res.status_code == 200
 
+    def test_projects(self):
+        ''' Test /projects '''
+        res = self.client.get('/projects')
+        assert res.status_code == 200
+
 def test_file_logging():
     ''' Make sure file logging is set up '''
     file_config = TestConfig()

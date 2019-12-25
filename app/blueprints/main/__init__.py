@@ -32,3 +32,8 @@ def show_batch_jobs():
 def show_illumina_runs():
     ''' Show Illumina Runs page '''
     return render_template('main/illumina_runs.html')
+
+@BP.route("/projects")
+def show_projects():
+    ''' Show Projects page '''
+    return render_template('main/projects.html')
