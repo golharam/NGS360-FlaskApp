@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="container theme-showcase" role="main">
+    <p>Click a job name to view the job log.</p>
+
+    <div class="table-responsive">
+        <table id="joblist" class="table table-striped" width="100%">
+            <thead>
+            <tr>
+                <th>Job Name</th>
+                <th>Submitted On</th>
+                <th>Job State</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    $(document).ready( function () {
+        var currentUrl = window.location.href;
+        if (currentUrl.indexOf("?filter=") > -1) {
+            var value = currentUrl.substring(currentUrl.lastIndexOf('/') + 1).slice(16);
+        }
+
+        $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
+
+        var table = $('#joblist').DataTable({
+            "ajax": {
+                url: "/api/v0/users/{{username}}/jobs",
+                dataSrc: ''
+            },
+            "buttons": [ 'colvis' ],
+            "columns": [
+                { "render": function ( data, type, row ) { 
+                      id = row["id"];
+                      jobname = row["name"];
+                      return '<a href="/jobs/'+id+'/log">' + jobname + '</a>';
+                  }
+                },
+                { "render": function ( data, type, row ) {
+                      d = new Date(row['submitted_on']);
+                      var datestring = d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2) + " " +
+                                       ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+                      return datestring;
+                  }
+                },
+                { "render": function ( data, type, row ) {
+                      if (row['status'] == null)
+                          return "Unknown";
+                      return row['status'];
+                  }
+                }
+            ],
+            "colReorder": true,
+            "deferRender": true,
+            "autoWidth": true,
+            "order": [[1, 'desc']]
+        });
+    } );
+</script>
+{% endblock %}
