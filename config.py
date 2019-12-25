@@ -18,6 +18,7 @@ load_dotenv(os.path.join(BASEDIR, '.env'))
 class DefaultConfig:
     ''' Default config settings that can be overridden '''
     APP_NAME = "NGS360"
+    SECRET_KEY = os.urandom(12)
     TESTING = False
 
     # For production, define this to a production database

@@ -22,9 +22,11 @@ def show_batch_jobs():
     ''' Show user jobs '''
     if 'username' in request.args:
         username = request.args.get('username')
-    else:
+    elif 'username' in session:
         username = session['username']
-    return render_template('jobs.html', username=username)
+    else:
+        username = None
+    return render_template('main/jobs.html', username=username)
 
 @BP.route("/illumina_runs")
 def show_illumina_runs():
