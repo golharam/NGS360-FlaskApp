@@ -26,6 +26,7 @@ def create_app(config_class=DefaultConfig):
     app.config.from_envvar('FLASK_CONFIG', silent=True)
     app.logger.info('%s loading', app.config['APP_NAME'])
 
+    # Connect to Database
     DB.init_app(app)
     MIGRATE.init_app(app, DB)
 

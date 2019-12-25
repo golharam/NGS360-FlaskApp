@@ -18,12 +18,10 @@ class BasicTests(TestCase):
         self.client = None
         self.app_context.pop()
 
-    def test_root(self):
+    def test_index(self):
         ''' Test the default route. '''
         res = self.client.get('/')
-        assert b'Hello!' in res.data
-        assert b'<b>Testing:</b> True' in res.data
-        assert b'<b>Debug:</b> False' in res.data
+        assert b'<title>NGS 360</title>' in res.data
 
 def test_file_logging():
     ''' Make sure file logging is set up '''
