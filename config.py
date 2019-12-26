@@ -38,7 +38,10 @@ class DefaultConfig:
     # MAIL_USE_TLS = True
     # ADMINS = comma separate list of who should get emailed
 
+    # PROJECTREGISTRY=http://projectreghost/register.pl
+
 class TestConfig(DefaultConfig):
     ''' Config settings for unit testing '''
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    PROJECTREGISTRY = "http://some/url"

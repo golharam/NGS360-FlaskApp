@@ -12,8 +12,9 @@ env: requirements.txt requirements-dev.txt
 	source .venv/bin/activate && pip install -r requirements.txt && pip install -r requirements-dev.txt
 
 test: env
-	source .venv/bin/activate && python -m pytest -v --cov app/ && coverage html && PYTHONPATH="." pylint app tests --load-plugins pylintplugins
+	source .venv/bin/activate && python -m pytest -v --cov app/ && coverage html && PYTHONPATH="." pylint app tests --load-plugins pylintplugins --exit-zero
 
 run: env
-	echo "FLASK_ENV=development" > .env
+	cp development.env .env
 	source .venv/bin/activate && python application.py
+	rm .env

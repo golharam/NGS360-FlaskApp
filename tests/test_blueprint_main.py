@@ -1,12 +1,12 @@
 '''
-Test endpoints in app.blueprint.main
+Test server-side endpoints in app.blueprint.main
 '''
 from unittest import TestCase
 from testfixtures import LogCapture
 from config import TestConfig
 from app import create_app
 
-class BasicTests(TestCase):
+class BlueprintMainTests(TestCase):
     ''' Basic test cases '''
     def setUp(self):
         self.app = create_app(TestConfig)
@@ -50,9 +50,9 @@ class BasicTests(TestCase):
         res = self.client.get('/illumina_runs')
         assert res.status_code == 200
 
-    def test_projects(self):
+    def test_projectregistry_json(self):
         ''' Test /projects '''
-        res = self.client.get('/projects')
+        res = self.client.get('/projectregistry_json')
         assert res.status_code == 200
 
 def test_file_logging():

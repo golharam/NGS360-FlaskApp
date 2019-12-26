@@ -29,7 +29,7 @@ pipeline {
     stage("Lint") {
       steps {
         withEnv(["HOME=${env.WORKSPACE}"]) {
-          sh 'PYTHONPATH="." .local/bin/pylint app tests --load-plugins pylintplugins'
+          sh 'PYTHONPATH="." .local/bin/pylint app tests --load-plugins pylintplugins --exit-zero'
         }
       }
     }
