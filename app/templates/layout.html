@@ -128,6 +128,7 @@
     <script>
         $().ready(() => {
             console.log("Running layout::ready()")
+            {% if session.username %}
             updateNotificationCount = () => {
                 $.get("/api/v0/users/{{ session.username }}/notifications?seen=False", function (data) {
                     let numNotifications = 0
@@ -190,6 +191,7 @@
                 items.push('<li><a href="/jobs">View All Jobs</a></li>')
                 $("#jobList").prepend(items.join(''));
             }
+            {% endif %}
         })
     </script>
 
