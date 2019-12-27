@@ -18,7 +18,8 @@ load_dotenv(os.path.join(BASEDIR, '.env'))
 class DefaultConfig:
     ''' Default config settings that can be overridden '''
     APP_NAME = "NGS360"
-    SECRET_KEY = os.urandom(12)
+    SECRET_KEY = os.environ.get('SECRET_KEY') or "changeme"
+    PROJECTREGISTRY = os.environ.get("PROJECTREGISTRY") or None
     TESTING = False
 
     # For production, define this to a production database
@@ -38,10 +39,9 @@ class DefaultConfig:
     # MAIL_USE_TLS = True
     # ADMINS = comma separate list of who should get emailed
 
-    # PROJECTREGISTRY=http://projectreghost/register.pl
-
 class TestConfig(DefaultConfig):
     ''' Config settings for unit testing '''
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
-    PROJECTREGISTRY = "http://some/url"
+    WTF_CSRF_ENABLED = False
+    LOGIN_DISABLED  = True

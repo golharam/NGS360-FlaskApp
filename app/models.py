@@ -2,34 +2,10 @@
 Database model
 '''
 # pylint: disable=C0116
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 from datetime import datetime
-from app import DB as db
-
-class Project(db.Model):
-    '''
-    Represents BMS Genomics Project, where id is BMS ProjectID
-    '''
-    id = db.Column(db.VARCHAR(50), primary_key=True)
-    rnaseq_qc_report = db.Column(db.VARCHAR(255), default=None)
-    wes_qc_report = db.Column(db.VARCHAR(255), default=None)
-    xpress_project_id = db.Column(db.INT, default=None)
-
-    def to_dict(self):
-        data = {
-            'id': self.id,
-            'rnaseq_qc_report_url': self.rnaseq_qc_report,
-            'wes_qc_report_url': self.wes_qc_report,
-            'xpress_project_id': self.xpress_project_id
-        }
-        return data
-
-    def from_dict(self, data):
-        for field in ['rnaseq_qc_report', 'wes_qc_report', 'xpress_project_id']:
-            if field in data:
-                setattr(self, field, data[field])
-
-    def __repr__(self):
-        return '<Project {}>'.format(self.id)
+from app import DB as db, LOGINMANAGER as login
 
 class BatchJob(db.Model):
     '''
@@ -94,6 +70,83 @@ class Notification(db.Model):
     def __repr__(self):
         return '<Notification {}>'.format(self.id)
 
+class Project(db.Model):
+    '''
+    Represents BMS Genomics Project, where id is BMS ProjectID
+    '''
+    id = db.Column(db.VARCHAR(50), primary_key=True)
+    rnaseq_qc_report = db.Column(db.VARCHAR(255), default=None)
+    wes_qc_report = db.Column(db.VARCHAR(255), default=None)
+    xpress_project_id = db.Column(db.INT, default=None)
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'rnaseq_qc_report_url': self.rnaseq_qc_report,
+            'wes_qc_report_url': self.wes_qc_report,
+            'xpress_project_id': self.xpress_project_id
+        }
+        return data
+
+    def from_dict(self, data):
+        for field in ['rnaseq_qc_report', 'wes_qc_report', 'xpress_project_id']:
+            if field in data:
+                setattr(self, field, data[field])
+
+    def __repr__(self):
+        return '<Project {}>'.format(self.id)
+
+class ProjectSample(db.Model):
+    """
+    Model to store Sample to Project association.  Attributes, such as the read files
+    (R1, and possibly R2 as well) associated with the Sample, will be in a seperate table.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    sample_id = db.Column(db.VARCHAR(100), nullable=False)
+    project_id = db.Column(db.VARCHAR(50), default=None)
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'sample_id': self.sample_id,
+            'project_id': self.project_id,
+            '_href': '/api/v0/samples/%s' % self.id
+        }
+        return data
+
+    def __repr__(self):
+        return 'ProjectSample object with Sample ID {} and Project ID {}'.format(
+            self.sample_id, self.project_id)
+
+class RunToSamples(db.Model):
+    """
+    Model for database table that maps SequencingRuns to Sample IDs
+    and Project IDs. For now, the Project IDs and Sample IDs are stored
+    as strings (VARCHAR), in case the Project associated with the Run
+    does not exist in the database yet.
+    """
+    id = db.Column(db.Integer, primary_key=True)
+    sequencing_run_id = db.Column(db.Integer, db.ForeignKey('sequencing_run.id'))
+    sample_id = db.Column(db.VARCHAR(512), default=None)
+    project_id = db.Column(db.VARCHAR(50), default=None)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'sequencing_run_id': self.sequencing_run_id,
+            'sample_id': self.sample_id,
+            'project_id': self.project_id
+        }
+
+    def from_dict(self, data):
+        for field in data:
+            setattr(self, field, data[field])
+
+    def __repr__(self):
+        return ('<RunToSamples mapping with SequencingRun {}, Sample ID {},'
+                ' and Project ID {}>'.format(self.sequencing_run_id, self.sample_id,
+                                             self.project_id))
+
 class SequencingRun(db.Model):
     '''
     This class/table represents an Illumina sequencing run
@@ -132,54 +185,21 @@ class SequencingRun(db.Model):
     def __repr__(self):
         return '<SequencingRun {}>'.format(self.id)
 
-
-class RunToSamples(db.Model):
-    """
-    Model for database table that maps SequencingRuns to Sample IDs
-    and Project IDs. For now, the Project IDs and Sample IDs are stored
-    as strings (VARCHAR), in case the Project associated with the Run
-    does not exist in the database yet.
-    """
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    sequencing_run_id = db.Column(db.Integer, db.ForeignKey('sequencing_run.id'))
-    sample_id = db.Column(db.VARCHAR(512), default=None)
-    project_id = db.Column(db.VARCHAR(50), default=None)
+    username = db.Column(db.String(64), index=True, unique=True)
+    email = db.Column(db.String(120), index=True, unique=True)
+    password_hash = db.Column(db.String(128))
 
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'sequencing_run_id': self.sequencing_run_id,
-            'sample_id': self.sample_id,
-            'project_id': self.project_id
-        }
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
 
-    def from_dict(self, data):
-        for field in data:
-            setattr(self, field, data[field])
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
     def __repr__(self):
-        return ('<RunToSamples mapping with SequencingRun {}, Sample ID {},'
-                ' and Project ID {}>'.format(self.sequencing_run_id, self.sample_id,
-                                             self.project_id))
+        return '<User {}>'.format(self.username)
 
-class ProjectSample(db.Model):
-    """
-    Model to store Sample to Project association.  Attributes, such as the read files
-    (R1, and possibly R2 as well) associated with the Sample, will be in a seperate table.
-    """
-    id = db.Column(db.Integer, primary_key=True)
-    sample_id = db.Column(db.VARCHAR(100), nullable=False)
-    project_id = db.Column(db.VARCHAR(50), default=None)
-
-    def to_dict(self):
-        data = {
-            'id': self.id,
-            'sample_id': self.sample_id,
-            'project_id': self.project_id,
-            '_href': '/api/v0/samples/%s' % self.id
-        }
-        return data
-
-    def __repr__(self):
-        return 'ProjectSample object with Sample ID {} and Project ID {}'.format(
-            self.sample_id, self.project_id)
+@login.user_loader
+def load_user(id):
+    return User.query.get(int(id))

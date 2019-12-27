@@ -4,7 +4,8 @@ Test server-side endpoints in app.blueprint.main
 from unittest import TestCase
 from testfixtures import LogCapture
 from config import TestConfig
-from app import create_app
+from app import create_app, DB as db
+from app.models import User
 
 class BlueprintMainTests(TestCase):
     ''' Basic test cases '''
@@ -26,6 +27,11 @@ class BlueprintMainTests(TestCase):
     def test_basespace(self):
         ''' Test /basespace '''
         res = self.client.get('/basespace')
+        assert res.status_code == 200
+
+    def test_projects(self):
+        ''' Test /projects '''
+        res = self.client.get('/projects')
         assert res.status_code == 200
 
     def test_jobs(self):
@@ -53,6 +59,11 @@ class BlueprintMainTests(TestCase):
     def test_projectregistry_json(self):
         ''' Test /projects '''
         res = self.client.get('/projectregistry_json')
+        assert res.status_code == 200
+
+    def test_projectregistry_json_withfields(self):
+        ''' Test /projects '''
+        res = self.client.get('/projectregistry_json?fields=projectid,projectname')
         assert res.status_code == 200
 
 def test_file_logging():

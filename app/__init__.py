@@ -9,11 +9,13 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager
 
 from config import DefaultConfig
 
 DB = SQLAlchemy()
 MIGRATE = Migrate()
+LOGINMANAGER = LoginManager()
 
 def create_app(config_class=DefaultConfig):
     '''
@@ -25,10 +27,13 @@ def create_app(config_class=DefaultConfig):
     app.config.from_object(config_class)
     app.config.from_envvar('FLASK_CONFIG', silent=True)
     app.logger.info('%s loading', app.config['APP_NAME'])
+    app.logger.info("Connect to database %s", app.config['SQLALCHEMY_DATABASE_URI'])
 
     # Connect to Database
     DB.init_app(app)
     MIGRATE.init_app(app, DB)
+    LOGINMANAGER.init_app(app)
+    LOGINMANAGER.login_view = 'user.login'
 
     if not app.debug and not app.testing:
         # If FLASK_LOG_FILE and FLASK_LOG_LEVEL env vars defined, set up logging.
@@ -64,6 +69,9 @@ def create_app(config_class=DefaultConfig):
 
     from app.blueprints.api import BP as api_bp
     app.register_blueprint(api_bp)
+
+    from app.blueprints.user import BP as user_bp
+    app.register_blueprint(user_bp)
 
     app.logger.info('%s loaded.', app.config['APP_NAME'])
     return app

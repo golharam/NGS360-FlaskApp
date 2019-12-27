@@ -14,6 +14,9 @@ def get_projects(project_registry_url, fields=None):
     :return: list of project dicts
     '''
     project_list = []
+    if project_registry_url is None:
+        return project_registry_url
+
     projects = dict(data=[])
     try:
         response = urlopen(project_registry_url)
