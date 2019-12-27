@@ -62,5 +62,8 @@ def create_app(config_class=DefaultConfig):
     from app.blueprints.main import BP as main_bp
     app.register_blueprint(main_bp)
 
+    from app.blueprints.api import BP as api_bp
+    app.register_blueprint(api_bp)
+
     app.logger.info('%s loaded.', app.config['APP_NAME'])
     return app

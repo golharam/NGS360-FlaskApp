@@ -5,3 +5,6 @@ __pycache__
 *.pyc
 htmlcov/
 .vscode/
+.DS_Store
+app.db
+development.env

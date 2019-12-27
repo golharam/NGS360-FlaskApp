@@ -87,7 +87,7 @@ class Notification(db.Model):
         return data
 
     def from_dict(self, data):
-        for field in ['user', 'batchjob_id', 'seen']:
+        for field in ['user', 'batchjob_id', 'seen', 'occurred_on']:
             if field in data:
                 setattr(self, field, data[field])
 
