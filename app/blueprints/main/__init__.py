@@ -48,9 +48,6 @@ def projectregistry_json():
     :param fields: comma-seperated list of fields to retrieve
     :return: JSON list of projects
     '''
-    if 'PROJECTREGISTRY' not in current_app.config:
-        current_app.logger.warn("PROJECTREGISTRY not set")
-        return jsonify({})
     pr_url = current_app.config['PROJECTREGISTRY']
     if 'fields' in request.args:
         fields = request.args.get('fields').split(",")

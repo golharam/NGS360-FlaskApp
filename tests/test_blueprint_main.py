@@ -28,6 +28,11 @@ class BlueprintMainTests(TestCase):
         res = self.client.get('/basespace')
         assert res.status_code == 200
 
+    def test_projects(self):
+        ''' Test /projects '''
+        res = self.client.get('/projects')
+        assert res.status_code == 200
+
     def test_jobs(self):
         ''' Test /jobs '''
         res = self.client.get('/jobs')
@@ -53,6 +58,11 @@ class BlueprintMainTests(TestCase):
     def test_projectregistry_json(self):
         ''' Test /projects '''
         res = self.client.get('/projectregistry_json')
+        assert res.status_code == 200
+
+    def test_projectregistry_json_withfields(self):
+        ''' Test /projects '''
+        res = self.client.get('/projectregistry_json?fields=projectid,projectname')
         assert res.status_code == 200
 
 def test_file_logging():
