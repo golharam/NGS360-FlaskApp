@@ -2,11 +2,13 @@
 Main application endpoints
 '''
 from flask import Blueprint, render_template, request, session, jsonify, current_app
+from flask_login import login_required
 from app import project_registry
 
 BP = Blueprint('main', __name__)
 
 @BP.route('/')
+@login_required
 def index():
     '''
     Home Page URL: /
@@ -14,11 +16,13 @@ def index():
     return render_template('main/index.html')
 
 @BP.route("/basespace")
+@login_required
 def show_basespace():
     ''' Show Basespace page '''
     return render_template('main/basespace.html')
 
 @BP.route("/jobs")
+@login_required
 def show_batch_jobs():
     ''' Show user jobs '''
     if 'username' in request.args:
@@ -30,11 +34,13 @@ def show_batch_jobs():
     return render_template('main/jobs.html', username=username)
 
 @BP.route("/illumina_runs")
+@login_required
 def show_illumina_runs():
     ''' Show Illumina Runs page '''
     return render_template('main/illumina_runs.html')
 
 @BP.route("/projects")
+@login_required
 def show_projects():
     ''' Show Projects page '''
     return render_template('main/projects.html')

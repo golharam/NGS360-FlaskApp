@@ -4,7 +4,8 @@ Test server-side endpoints in app.blueprint.main
 from unittest import TestCase
 from testfixtures import LogCapture
 from config import TestConfig
-from app import create_app
+from app import create_app, DB as db
+from app.models import User
 
 class BlueprintMainTests(TestCase):
     ''' Basic test cases '''
