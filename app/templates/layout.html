@@ -48,17 +48,21 @@
     <script type="text/javascript" src="/static/tour.js?v=3"></script>
 
     <script type="text/javascript">
-        {% if session.username %}
-        userid = returnVar("{{session.username}}")
+        {% if current_user.username %}
+        userid = returnVar("{{current_user.username}}")
         {% else %}
         userid = ""
         {% endif %}
     </script>
 
+    {% if config['JIRA_FEEDBACK'] %}
     <!-- Jira Issue Collector - Got Feedback? -->
-    <script type="text/javascript" src="https://dashboard.pri.bms.com:8443/s/8d502bf640a39fe856b1ed5db7397eb4-T/ichhbq/73019/b6b48b2829824b869586ac216d119363/2.0.23/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=5adc1c2b"></script>
+    <script type="text/javascript" src="{{ config['JIRA_FEEDBACK'] }}"></script>
+    {% endif %}
+    {% if config['JIRA_BUGREPORT'] %}
     <!-- Jira Issue Collector - Bug Report? -->
-    <script type="text/javascript" src="https://dashboard.pri.bms.com:8443/s/8d502bf640a39fe856b1ed5db7397eb4-T/ichhbq/73019/b6b48b2829824b869586ac216d119363/2.0.23/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=ade0a922"></script>
+    <script type="text/javascript" src="{{ config['JIRA_BUGREPORT'] }}"></script>
+    {% endif %}
 
     {% block head %}
     {% endblock %}

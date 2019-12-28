@@ -20,10 +20,12 @@ def get_projects(project_registry_url, fields=None):
     projects = dict(data=[])
     try:
         response = urlopen(project_registry_url)
-        projects = json.load(response)
-    except URLError as error:
-        current_app.logger.error("%s", error.strerror)
+    except URLError:
+        #current_app.logger.error(error)
+        #current_app.logger.error("Unable to open %s", project_registry_url)
         return project_list
+
+    projects = json.load(response)
 
     if fields is None:
         return projects['data']

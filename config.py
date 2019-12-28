@@ -39,6 +39,9 @@ class DefaultConfig:
     # MAIL_USE_TLS = True
     # ADMINS = comma separate list of who should get emailed
 
+    # JIRA_FEEDBACK =
+    # JIRA_BUGREPORT = 
+
 class TestConfig(DefaultConfig):
     ''' Config settings for unit testing '''
     TESTING = True
