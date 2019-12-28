@@ -26,9 +26,8 @@ class FrontEndTests(LiveServerTestCase):
     def tearDown(self):
         self.driver.quit()
 
-    def test_homepage_loads_correctly(self):
-        ''' Make sure there are no Javascript errors when the home page loads '''
-        response = urllib.request.urlopen(self.get_server_url())
+    def check_page(self, page_url):
+        response = urllib.request.urlopen(page_url)
         self.assertEqual(response.code, 200)
         log = self.driver.get_log("browser")
         for log_entry in log:
@@ -36,3 +35,22 @@ class FrontEndTests(LiveServerTestCase):
                 if 'message' in log_entry:
                     self.fail(log_entry['message'])
                 self.fail("Unknown log entry: %s" % log_entry)
+
+    def test_basespace_page(self):
+        ''' Make sure there are no Javascript errors when the home page loads '''
+        url = "%s/basespace" % self.get_server_url()
+        self.check_page(url)
+
+    def test_illuminaruns_page(self):
+        ''' Make sure there are no Javascript errors when the home page loads '''
+        url = "%s/illumina_runs" % self.get_server_url()
+        self.check_page(url)
+
+    def test_index_page(self):
+        ''' Make sure there are no Javascript errors when the home page loads '''
+        self.check_page(self.get_server_url())
+
+    def test_jobs_page(self):
+        ''' Make sure there are no Javascript errors when the home page loads '''
+        url = "%s/projects" % self.get_server_url()
+        self.check_page(url)
