@@ -24,6 +24,13 @@ pipeline {
         }
       }
     }
+    stage('Front-End Chrome Tests') {
+      steps {
+        withEnv(overrides: ["HOME=${env.WORKSPACE}"]) {
+          sh 'python3 -m pytest -v tests/FrontEnd'
+        }
+      }
+    }
     stage('Lint') {
       steps {
         withEnv(overrides: ["HOME=${env.WORKSPACE}"]) {
@@ -31,13 +38,6 @@ pipeline {
         }
       }
 
-    }
-    stage('Front-End Chrome Tests') {
-      steps {
-        withEnv(overrides: ["HOME=${env.WORKSPACE}"]) {
-          sh 'python3 -m pytest -v tests/FrontEnd'
-        }
-      }
     }
   }
 }
