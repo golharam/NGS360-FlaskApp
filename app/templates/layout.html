@@ -48,17 +48,21 @@
     <script type="text/javascript" src="/static/tour.js?v=3"></script>
 
     <script type="text/javascript">
-        {% if session.username %}
-        userid = returnVar("{{session.username}}")
+        {% if current_user.username %}
+        userid = returnVar("{{current_user.username}}")
         {% else %}
         userid = ""
         {% endif %}
     </script>
 
+    {% if config['JIRA_FEEDBACK'] %}
     <!-- Jira Issue Collector - Got Feedback? -->
-    <script type="text/javascript" src="https://dashboard.pri.bms.com:8443/s/8d502bf640a39fe856b1ed5db7397eb4-T/ichhbq/73019/b6b48b2829824b869586ac216d119363/2.0.23/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=5adc1c2b"></script>
+    <script type="text/javascript" src="{{ config['JIRA_FEEDBACK'] }}"></script>
+    {% endif %}
+    {% if config['JIRA_BUGREPORT'] %}
     <!-- Jira Issue Collector - Bug Report? -->
-    <script type="text/javascript" src="https://dashboard.pri.bms.com:8443/s/8d502bf640a39fe856b1ed5db7397eb4-T/ichhbq/73019/b6b48b2829824b869586ac216d119363/2.0.23/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=ade0a922"></script>
+    <script type="text/javascript" src="{{ config['JIRA_BUGREPORT'] }}"></script>
+    {% endif %}
 
     {% block head %}
     {% endblock %}
@@ -92,14 +96,16 @@
 
                 <!-- Right Navbar -->
                 <ul class="nav navbar-nav navbar-right">
-                    {% if session.username %}
                     <li class="navbar-text">
                         <p>
                             <img src="/static/images/user-circle_orange.svg" alt="" style="margin-right: 10px; display: none">
-                            <span id="userid">{{ session.username }}</span>
+                            {% if current_user.is_anonymous %}
+                            <a href="{{ url_for('user.login') }}">Login</a>
+                            {% else %}
+                            <span id="userid">{{ current_user.username }} | <a href="{{ url_for('user.logout') }}">Logout</a></span>
+                            {% endif %}
                         </p>
                     </li>
-                    {% endif %}
                     <li id="notificationDropDown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                             <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
@@ -121,6 +127,16 @@
     <!-- END Fixed navbar -->
 
     <div class="container theme-showcase" role="main">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
     {% block body %}
     {% endblock %}
     </div><!-- /.container -->
@@ -128,8 +144,9 @@
     <script>
         $().ready(() => {
             console.log("Running layout::ready()")
+            {% if current_user.username %}
             updateNotificationCount = () => {
-                $.get("/api/v0/users/{{ session.username }}/notifications?seen=False", function (data) {
+                $.get("/api/v0/users/{{ current_user.username }}/notifications?seen=False", function (data) {
                     let numNotifications = 0
                     data.forEach(notification => {
                         numNotifications++
@@ -150,21 +167,21 @@
             $('#notificationDropDown').on('shown.bs.dropdown', function () {
                 numNotifications = $("#numNotifications")[0].innerHTML
                 if (numNotifications > 0) {
-                    $.get("/api/v0/users/{{ session.username }}/notifications/clear")
+                    $.get("/api/v0/users/{{ current_user.username }}/notifications/clear")
                     setNotificationCount(0)
                 }
             });
 
             /*
             var notification_socket = io.connect('http://' + document.domain + ':' + location.port);
-            notification_socket.on('{{session.username}}', function(notification) {
+            notification_socket.on('{{current_user.username}}', function(notification) {
                 updateNotificationCount()
                 getJobNotificationList()
             });
             */
 
             getJobNotificationList = () => {
-                $.get("/api/v0/users/{{ session.username }}/notification_joblist?limit=10&order=desc", function (data) {
+                $.get("/api/v0/users/{{ current_user.username }}/notification_joblist?limit=10&order=desc", function (data) {
                     populateJobNotifications(data)
                 });
             }
@@ -190,6 +207,7 @@
                 items.push('<li><a href="/jobs">View All Jobs</a></li>')
                 $("#jobList").prepend(items.join(''));
             }
+            {% endif %}
         })
     </script>
 

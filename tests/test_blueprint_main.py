@@ -1,15 +1,18 @@
 '''
-Test endpoints in app.blueprint.main
+Test server-side endpoints in app.blueprint.main
 '''
 from unittest import TestCase
 from testfixtures import LogCapture
 from config import TestConfig
-from app import create_app
+from app import create_app, DB as db
+from app.models import User
 
-class BasicTests(TestCase):
+class BlueprintMainTests(TestCase):
     ''' Basic test cases '''
     def setUp(self):
-        self.app = create_app(TestConfig)
+        test_config = TestConfig()
+        test_config.LOGIN_DISABLED = True
+        self.app = create_app(test_config)
         self.app_context = self.app.app_context()
         self.app_context.push()
         self.client = self.app.test_client()
@@ -26,6 +29,14 @@ class BasicTests(TestCase):
     def test_basespace(self):
         ''' Test /basespace '''
         res = self.client.get('/basespace')
+        assert res.status_code == 200
+
+    def test_basespace_archiverun(self):
+        self.skipTest("Not yet implemented")
+
+    def test_projects(self):
+        ''' Test /projects '''
+        res = self.client.get('/projects')
         assert res.status_code == 200
 
     def test_jobs(self):
@@ -50,9 +61,14 @@ class BasicTests(TestCase):
         res = self.client.get('/illumina_runs')
         assert res.status_code == 200
 
-    def test_projects(self):
+    def test_projectregistry_json(self):
         ''' Test /projects '''
-        res = self.client.get('/projects')
+        res = self.client.get('/projectregistry_json')
+        assert res.status_code == 200
+
+    def test_projectregistry_json_withfields(self):
+        ''' Test /projects '''
+        res = self.client.get('/projectregistry_json?fields=projectid,projectname')
         assert res.status_code == 200
 
 def test_file_logging():

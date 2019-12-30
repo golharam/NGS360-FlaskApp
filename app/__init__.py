@@ -9,11 +9,15 @@ import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager
 
 from config import DefaultConfig
+from app.BaseSpace import BaseSpace
 
 DB = SQLAlchemy()
 MIGRATE = Migrate()
+LOGINMANAGER = LoginManager()
+BASESPACE = BaseSpace()
 
 def create_app(config_class=DefaultConfig):
     '''
@@ -25,10 +29,17 @@ def create_app(config_class=DefaultConfig):
     app.config.from_object(config_class)
     app.config.from_envvar('FLASK_CONFIG', silent=True)
     app.logger.info('%s loading', app.config['APP_NAME'])
+    app.logger.info("Connect to database %s", app.config['SQLALCHEMY_DATABASE_URI'])
+    app.logger.info("ProjectRegister URL: %s", app.config['PROJECTREGISTRY'])
+    app.logger.info("BaseSpace Token: %s", app.config['BASESPACE_TOKEN'])
 
-    # Connect to Database
     DB.init_app(app)
     MIGRATE.init_app(app, DB)
+
+    LOGINMANAGER.init_app(app)
+    LOGINMANAGER.login_view = 'user.login'
+
+    BASESPACE.init_app(app)
 
     if not app.debug and not app.testing:
         # If FLASK_LOG_FILE and FLASK_LOG_LEVEL env vars defined, set up logging.
@@ -61,6 +72,15 @@ def create_app(config_class=DefaultConfig):
 
     from app.blueprints.main import BP as main_bp
     app.register_blueprint(main_bp)
+
+    from app.blueprints.api import BP as api_bp
+    app.register_blueprint(api_bp)
+
+    from app.blueprints.user import BP as user_bp
+    app.register_blueprint(user_bp)
+
+    from app.blueprints.basespace import BP as basespace_bp
+    app.register_blueprint(basespace_bp)
 
     app.logger.info('%s loaded.', app.config['APP_NAME'])
     return app

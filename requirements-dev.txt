@@ -3,3 +3,5 @@ pytest
 pytest-cov
 pylint
 testfixtures
+flask_testing
+selenium

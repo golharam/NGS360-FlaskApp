@@ -1,37 +1,43 @@
 pipeline {
-  agent {
-    docker { image 'python:3-alpine' }
-  }
+  agent { docker { image 'markadams/chromium-xvfb-py3' } }
   stages {
-    stage("Install Requirements") {
+    stage('Install Requirements') {
       steps {
-        withEnv(["HOME=${env.WORKSPACE}"]) {
-          sh 'pip install --user -r requirements.txt'
-          sh 'pip install --user -r requirements-dev.txt'
+        withEnv(overrides: ["HOME=${env.WORKSPACE}"]) {
+          sh 'pip3 install --user -r requirements.txt'
+          sh 'pip3 install --user -r requirements-dev.txt'
         }
       }
     }
-    stage("Test") {
+    stage('Unit Test') {
       steps {
-        withEnv(["HOME=${env.WORKSPACE}"]) {
-          sh 'python -m pytest -v --cov app/'
+        withEnv(overrides: ["HOME=${env.WORKSPACE}"]) {
+          sh 'python3 -m pytest -v --cov app/ --ignore=tests/FrontEnd'
         }
       }
       post {
         success {
           withEnv(["HOME=${env.WORKSPACE}"]) {
             sh '.local/bin/coverage xml'
-            cobertura coberturaReportFile: 'coverage.xml'
+            cobertura(coberturaReportFile: 'coverage.xml')
           }
         }
       }
     }
-    stage("Lint") {
+    stage('Front-End Chrome Tests') {
       steps {
-        withEnv(["HOME=${env.WORKSPACE}"]) {
-          sh 'PYTHONPATH="." .local/bin/pylint app tests --load-plugins pylintplugins'
+        withEnv(overrides: ["HOME=${env.WORKSPACE}"]) {
+          sh 'python3 -m pytest -v tests/FrontEnd'
         }
       }
+    }
+    stage('Lint') {
+      steps {
+        withEnv(overrides: ["HOME=${env.WORKSPACE}"]) {
+          sh 'PYTHONPATH="." .local/bin/pylint app tests --load-plugins pylintplugins --exit-zero'
+        }
+      }
+
     }
   }
 }

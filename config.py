@@ -18,7 +18,8 @@ load_dotenv(os.path.join(BASEDIR, '.env'))
 class DefaultConfig:
     ''' Default config settings that can be overridden '''
     APP_NAME = "NGS360"
-    SECRET_KEY = os.urandom(12)
+    SECRET_KEY = os.environ.get('SECRET_KEY') or "changeme"
+    PROJECTREGISTRY = os.environ.get("PROJECTREGISTRY") or None
     TESTING = False
 
     # For production, define this to a production database
@@ -30,6 +31,8 @@ class DefaultConfig:
     # FLASK_LOG_FILE = /path/to/log/file
     # FLASK_LOG_LEVEL = INFO
 
+    BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
+
     # Email error log settings
     # MAIL_SERVER = mailserver
     # MAIL_PORT
@@ -38,7 +41,21 @@ class DefaultConfig:
     # MAIL_USE_TLS = True
     # ADMINS = comma separate list of who should get emailed
 
+    # JIRA_FEEDBACK =
+    # JIRA_BUGREPORT = 
+
 class TestConfig(DefaultConfig):
     ''' Config settings for unit testing '''
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    # Don't use sqllite in memory database since it runs in a different
+    # thread.   Setting it up for unittests doesn't work.  Instead, use an
+    # on disk file.
+    # Ref: https://gehrcke.de/2015/05/in-memory-sqlite-database-and-flask-a-threading-trap/
+    #SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASEDIR, 'test.db')
+
+    WTF_CSRF_ENABLED = False
+    # Bypassing logins makes front end testing easier, however
+    # it means we may skip some functionality that needs to be
+    # tested when a user is logged in.
+    #LOGIN_DISABLED = True
