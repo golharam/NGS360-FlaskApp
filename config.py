@@ -33,6 +33,10 @@ class DefaultConfig:
 
     BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
 
+    BOTO3_SERVICES = ['batch']
+    JOB_DEFINITION = os.environ.get('NGS_JOB') or None
+    JOB_QUEUE = os.environ.get('NGS_JOB_QUEUE') or None
+
     # Email error log settings
     # MAIL_SERVER = mailserver
     # MAIL_PORT
@@ -42,7 +46,7 @@ class DefaultConfig:
     # ADMINS = comma separate list of who should get emailed
 
     # JIRA_FEEDBACK =
-    # JIRA_BUGREPORT = 
+    # JIRA_BUGREPORT =
 
 class TestConfig(DefaultConfig):
     ''' Config settings for unit testing '''
