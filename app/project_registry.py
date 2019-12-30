@@ -20,7 +20,7 @@ def get_projects(project_registry_url, fields=None):
     try:
         response = urlopen(project_registry_url)
     except URLError:
-        abort(404)
+        return project_list
 
     projects = json.load(response)
 

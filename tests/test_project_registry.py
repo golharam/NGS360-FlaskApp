@@ -37,13 +37,12 @@ class ProjectRegistryTests(TestCase):
                                                      fields=['projectid', 'projectname'])
         self.assertEqual(len(projects), 2,)
 
-    def Xtest_get_projects_with_error(self):
-        ''' TODO: Test failed to retrieve projects '''
+    def test_get_projects_with_error(self):
+        ''' Test failed to retrieve projects '''
         with patch('app.project_registry.urlopen') as mock_open:
             mock_open.side_effect = URLError(reason="mock error")
-            with self.assertRaises(URLError) as url_error:
-                project_registry.get_projects("http://thisshouldneverwork.com")
-                self.assertEqual(url_error.exception.code, 404)
+            projects = project_registry.get_projects("someurl")
+            self.assertEqual(projects, [])
 
 if __name__ == '__main__':
     unittest.main()
