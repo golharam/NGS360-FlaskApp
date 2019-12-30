@@ -10,7 +10,9 @@ from app.models import User
 class BlueprintMainTests(TestCase):
     ''' Basic test cases '''
     def setUp(self):
-        self.app = create_app(TestConfig)
+        test_config = TestConfig()
+        test_config.LOGIN_DISABLED = True
+        self.app = create_app(test_config)
         self.app_context = self.app.app_context()
         self.app_context.push()
         self.client = self.app.test_client()
@@ -28,6 +30,9 @@ class BlueprintMainTests(TestCase):
         ''' Test /basespace '''
         res = self.client.get('/basespace')
         assert res.status_code == 200
+
+    def test_basespace_archiverun(self):
+        self.skipTest("Not yet implemented")
 
     def test_projects(self):
         ''' Test /projects '''

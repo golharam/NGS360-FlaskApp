@@ -31,6 +31,8 @@ class DefaultConfig:
     # FLASK_LOG_FILE = /path/to/log/file
     # FLASK_LOG_LEVEL = INFO
 
+    BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
+
     # Email error log settings
     # MAIL_SERVER = mailserver
     # MAIL_PORT
@@ -45,6 +47,15 @@ class DefaultConfig:
 class TestConfig(DefaultConfig):
     ''' Config settings for unit testing '''
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    # Don't use sqllite in memory database since it runs in a different
+    # thread.   Setting it up for unittests doesn't work.  Instead, use an
+    # on disk file.
+    # Ref: https://gehrcke.de/2015/05/in-memory-sqlite-database-and-flask-a-threading-trap/
+    #SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASEDIR, 'test.db')
+
     WTF_CSRF_ENABLED = False
-    LOGIN_DISABLED  = True
+    # Bypassing logins makes front end testing easier, however
+    # it means we may skip some functionality that needs to be
+    # tested when a user is logged in.
+    #LOGIN_DISABLED = True

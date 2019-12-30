@@ -4,8 +4,7 @@ Interface to Project Registry
 from urllib.request import urlopen
 from urllib.error import URLError
 import json
-
-from flask import current_app
+from flask import current_app, abort
 
 def get_projects(project_registry_url, fields=None):
     '''
@@ -15,15 +14,13 @@ def get_projects(project_registry_url, fields=None):
     '''
     project_list = []
     if project_registry_url is None:
-        return project_registry_url
+        return project_list
 
     projects = dict(data=[])
     try:
         response = urlopen(project_registry_url)
     except URLError:
-        #current_app.logger.error(error)
-        #current_app.logger.error("Unable to open %s", project_registry_url)
-        return project_list
+        abort(404)
 
     projects = json.load(response)
 

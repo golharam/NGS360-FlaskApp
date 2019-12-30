@@ -58,38 +58,40 @@
             'success' : function(data) {
                 $('.ngsSearchbar').attr("placeholder", "Search by Project ID or Name");
                 var result = [];
-                for(var i=0; i< data.length; i++){
-                    result[i] = data[i].projectid + " " + data[i].projectname;
-                }
-                $.typeahead({
-                    input: '.ngsSearchbar',
-                    minLength: 1,
-                    maxItem: 5,
-                    order: "asc",
-                    hint: true,
-                    source: {
-                            data: result,
-                    },
-                    callback: {
-                        onClick: function (node, a, item, event) {
-                            var strID = item.display.substring(0, item.display.indexOf(" "));
-                            window.location.href = "/projects/" + strID;
-
-                            var userinput = $(".ngsSearchbar").val();
-                            var flagOnSearch = false;
-                            for(var i=0; i < result.length; i++){
-                                if(userinput == result[i]){
-                                    flagOnSearch = true;
-                                }
-                            }
-                            if(flagOnSearch){
+                if (data) {
+                    for(var i=0; i< data.length; i++){
+                        result[i] = data[i].projectid + " " + data[i].projectname;
+                    }
+                    $.typeahead({
+                        input: '.ngsSearchbar',
+                        minLength: 1,
+                        maxItem: 5,
+                        order: "asc",
+                        hint: true,
+                        source: {
+                                data: result,
+                        },
+                        callback: {
+                            onClick: function (node, a, item, event) {
                                 var strID = item.display.substring(0, item.display.indexOf(" "));
                                 window.location.href = "/projects/" + strID;
+
+                                var userinput = $(".ngsSearchbar").val();
+                                var flagOnSearch = false;
+                                for(var i=0; i < result.length; i++){
+                                    if(userinput == result[i]){
+                                        flagOnSearch = true;
+                                    }
+                                }
+                                if(flagOnSearch){
+                                    var strID = item.display.substring(0, item.display.indexOf(" "));
+                                    window.location.href = "/projects/" + strID;
+                                }
                             }
                         }
-                    }
-                });
-
+                    });
+                }
+                
                 $('.ngsSearchbar').focus();
 
 
