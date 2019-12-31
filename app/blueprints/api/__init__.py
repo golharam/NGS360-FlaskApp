@@ -201,9 +201,7 @@ def get_run_sample_sheet(sequencing_run_id):
     run = SequencingRun.query.get(sequencing_run_id)
     if run:
         ss_json['Summary'] = run.to_dict()
-
         sample_sheet_path = "%s/SampleSheet.csv" % run.s3_run_folder_path
-        current_app.logger.info("Reading %s", sample_sheet_path)
         bucket, key = find_bucket_key(sample_sheet_path)
         if access(bucket, key):
             ss = SampleSheet(sample_sheet_path)
