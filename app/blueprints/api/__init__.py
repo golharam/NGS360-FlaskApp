@@ -2,11 +2,50 @@
 Notifications Endpoint
 '''
 import datetime
-from flask import Blueprint, request, jsonify, abort
-from app import DB as db
+import json
+from io import BytesIO
+from flask import Blueprint, request, jsonify, abort, current_app
+from sample_sheet import SampleSheet
+from app import DB as db, BOTO3 as boto3
 from app.models import BatchJob, Notification, SequencingRun
 
 BP = Blueprint('api', __name__)
+
+def access(bucket, key):
+    '''
+    This function mimick os.access to check for a file
+    key is full s3 path to file eg s3://mybucket/myfile.txt
+    '''
+    paginator = boto3.clients['s3'].get_paginator('list_objects')
+    iterator = paginator.paginate(Bucket=bucket,
+                                  Prefix=key, Delimiter='/')
+    for response_data in iterator:
+        #common_prefixes = response_data.get('CommonPrefixes', [])
+        contents = response_data.get('Contents', [])
+        #if not contents: # and not common_prefixes:
+            #self._empty_result = True
+        #    return
+        #for common_prefix in common_prefixes:
+            # is Dir, should never occur
+        for content in contents:
+            return key == content['Key']
+    return False
+
+def find_bucket_key(s3path):
+    """
+    This is a helper function that given an s3 path such that the path is of
+    the form: bucket/key
+    It will return the bucket and the key represented by the s3 path, eg
+    if s3path == s3://bmsrd-ngs-data/P-234
+    """
+    if s3path.startswith('s3://'):
+        s3path = s3path[5:]
+    s3components = s3path.split('/')
+    bucket = s3components[0]
+    s3key = ""
+    if len(s3components) > 1:
+        s3key = '/'.join(s3components[1:])
+    return bucket, s3key
 
 @BP.route("/api/v0/users/<string:userid>/notifications", methods=["GET"])
 def get_user_notifications(userid):
@@ -152,3 +191,40 @@ def create_run():
         abort(409)
     run = SequencingRun.query.filter_by(s3_run_folder_path=s3_run_folder_path).first()
     return jsonify({'run': run.to_dict()}), 201
+
+@BP.route("/api/v0/runs/<sequencing_run_id>/sample_sheet", methods=["GET"])
+def get_run_sample_sheet(sequencing_run_id):
+    ss_json = {'Summary': {}, 'Header': {},
+               'Reads': {}, 'Settings': {},
+               'DataCols': [], 'Data': []}
+
+    run = SequencingRun.query.get(sequencing_run_id)
+    if run:
+        ss_json['Summary'] = run.to_dict()
+
+        sample_sheet_path = "%s/SampleSheet.csv" % run.s3_run_folder_path
+        current_app.logger.info("Reading %s", sample_sheet_path)
+        bucket, key = find_bucket_key(sample_sheet_path)
+        if access(bucket, key):
+            ss = SampleSheet(sample_sheet_path)
+            ss = json.loads(ss.to_json())
+            ss_json['Header'] = ss['Header']
+            ss_json['Reads'] = ss['Reads']
+            ss_json['Settings'] = ss['Settings']
+            ss_json['DataCols'] = list(ss['Data'][0].keys())
+            ss_json['Data'] = ss['Data']
+    return jsonify(ss_json)
+
+@BP.route("/api/v0/runs/<sequencing_run_id>/metrics", methods=["GET"])
+def get_metrics(sequencing_run_id):
+    run = SequencingRun.query.get(sequencing_run_id)
+    if not run:
+        return '{"Status": "error", "Message": "Run not found"}', 404
+
+    s3_stats_file = "%s/Stats/Stats.json" % run.s3_run_folder_path
+    bucket, key = find_bucket_key(s3_stats_file)
+    if not access(bucket, key):
+        return '{"Status": "error", "Message": "%s not found"}' % s3_stats_file, 404
+    data = boto3.clients['s3'].get_object(Bucket=bucket, Key=key)
+    json_stats = json.loads(data['Body'].read())
+    return jsonify(json_stats)

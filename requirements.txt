@@ -1,8 +1,11 @@
 flask
 flask-boto3
-flask_sqlalchemy
-flask_migrate
-flask_wtf
 flask-login
-python-dotenv
+flask_migrate
+flask-restplus
+flask_sqlalchemy
+flask_wtf
 mysql-connector
+python-dotenv
+sample-sheet
+smart_open

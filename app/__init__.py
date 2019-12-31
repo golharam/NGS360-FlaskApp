@@ -7,19 +7,22 @@ from logging.handlers import TimedRotatingFileHandler, SMTPHandler
 import os
 
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_login import LoginManager
 from flask_boto3 import Boto3
+from flask_login import LoginManager
+from flask_migrate import Migrate
+from flask_restplus import Api
+from flask_sqlalchemy import SQLAlchemy
 
 from config import DefaultConfig
 from app.BaseSpace import BaseSpace
 
 DB = SQLAlchemy()
 MIGRATE = Migrate()
-LOGINMANAGER = LoginManager()
+
+API = Api()
 BASESPACE = BaseSpace()
 BOTO3 = Boto3()
+LOGINMANAGER = LoginManager()
 
 def create_app(config_class=DefaultConfig):
     '''
@@ -39,12 +42,12 @@ def create_app(config_class=DefaultConfig):
 
     DB.init_app(app)
     MIGRATE.init_app(app, DB)
-
-    LOGINMANAGER.init_app(app)
-    LOGINMANAGER.login_view = 'user.login'
+    API.init_app(app)
 
     BASESPACE.init_app(app)
     BOTO3.init_app(app)
+    LOGINMANAGER.init_app(app)
+    LOGINMANAGER.login_view = 'user.login'
 
     if not app.debug and not app.testing:
         # If FLASK_LOG_FILE and FLASK_LOG_LEVEL env vars defined, set up logging.
