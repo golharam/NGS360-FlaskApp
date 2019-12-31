@@ -3,7 +3,6 @@ BaseSpace interface to BaseSpace REST API, v1pre3
 
 Author: Ryan Golhar <ryan.golhar@bms.com>
 """
-
 from urllib.request import urlopen
 from urllib.error import HTTPError
 import json
@@ -28,18 +27,21 @@ class BaseSpace:
         self.base_url = '%s/%s' % (self.api_endpoint, self.api_endpoint_version)
         self.access_token = access_token
         self.userid = None
+        self.app = None
         if access_token:
             # This is needed because other calls rely on self.userid
             self.get_user_id()
 
     def init_app(self, app):
         ''' Mimicks the init_app for Flask apps '''
+        self.app = app
         if 'BASESPACE_TOKEN' in app.config:
             self.access_token = app.config['BASESPACE_TOKEN']
             self.get_user_id()
 
     def get_user_id(self):
         """ Return the current user's id """
+        self.app.logger.info("Attempting to deterimine userid...")
         url = '%s/users/current?access_token=%s' % (self.base_url, self.access_token)
         data = get_json(url)
         if data and 'Response' in data:
@@ -47,6 +49,7 @@ class BaseSpace:
             self.userid = response['Id']
         else:
             self.userid = None
+        self.app.logger.info("userid is %s", self.userid)
         return self.userid
 
     def get_runs(self):
