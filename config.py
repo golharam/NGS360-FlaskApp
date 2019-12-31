@@ -48,6 +48,8 @@ class DefaultConfig:
     # JIRA_FEEDBACK =
     # JIRA_BUGREPORT =
 
+    HELP_URL = os.environ.get("HELP_URL") or None
+
 class TestConfig(DefaultConfig):
     ''' Config settings for unit testing '''
     TESTING = True
