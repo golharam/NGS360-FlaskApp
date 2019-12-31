@@ -33,7 +33,7 @@ class DefaultConfig:
 
     BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
 
-    BOTO3_SERVICES = ['batch']
+    BOTO3_SERVICES = ['batch', 'logs']
     JOB_DEFINITION = os.environ.get('NGS_JOB') or None
     JOB_QUEUE = os.environ.get('NGS_JOB_QUEUE') or None
 

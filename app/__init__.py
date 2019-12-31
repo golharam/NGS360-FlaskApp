@@ -87,5 +87,8 @@ def create_app(config_class=DefaultConfig):
     from app.blueprints.basespace import BP as basespace_bp
     app.register_blueprint(basespace_bp)
 
+    from app.blueprints.aws_batch import BP as aws_batch_bp
+    app.register_blueprint(aws_batch_bp)
+
     app.logger.info('%s loaded.', app.config['APP_NAME'])
     return app
