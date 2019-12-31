@@ -86,6 +86,25 @@
                 }
             });
         }
+        function archiveRunToS3(runname) {
+            jobStatusDialog = showJobStatusDialog("Archiving BaseSpace run to S3", null, null);
+            requestUrl = "/archiveRun/" + runname;
+            $.get(requestUrl, function(data) {
+                if (('status' in data) && (data['status'] == 'ERROR')) {
+                    alert(data['log'])
+                } else {
+                    jobName = data['jobName'];
+                    jobId = data['jobId'];
+                    console.log("jobName: " + jobName)
+                    console.log("jobId: " + jobId)
+                    jobStatusDialog.setData('jobName', data['jobName']);
+                    jobStatusDialog.setData('jobId', data['jobId']);
+                }
+            }).fail(function () {
+                jobStatusDialog.setMessage('Unable to connect to server.  Please refresh the page and try again.');
+            });
+        }
+        /*
         function confirmCopyProjectToS3(button) {
             var projectid = button.id;
 			if (projectid.startsWith("P-")) {
@@ -110,18 +129,6 @@
                 alert('Please close it and refresh the website.');
             });
         }
-        function archiveRunToS3(runname) {
-            $.get("/archiveRun/" + runname, function(data) {
-                if (('status' in data) && (data['status'] == 'ERROR')) {
-                    alert(data['log'])
-                } else {
-                    jobName = data['jobName'];
-                    jobId = data['jobId'];
-                    showJobStatusDialog("Archiving BaseSpace run to S3", jobName, jobId);
-                }
-            }).fail(function () {
-                alert('Unable to connect to server.  Please refresh the page and try again.');
-            });
-        }
+        */
     </script>
 {% endblock %}
