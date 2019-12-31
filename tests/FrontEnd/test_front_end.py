@@ -66,6 +66,10 @@ class FrontEndTests(LiveServerTestCase):
         url = "%s/basespace" % self.get_server_url()
         self.check_page(url)
 
+    def test_basespace_archiverun_action(self):
+        ''' Make sure we can archive a run '''
+        self.skipTest("not yet implemented")
+
     def test_illuminaruns_page(self):
         ''' Make sure there are no Javascript errors when the home page loads '''
         url = "%s/illumina_runs" % self.get_server_url()
