@@ -1,0 +1,492 @@
+{% extends "layout.html" %}
+{% block title %} - {{run_barcode}}{% endblock %}
+
+{% block head %}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    google.charts.load('current', {packages: ['corechart']});
+</script>
+{% endblock %}
+
+{% block body %}
+<div id="progress-wrp">
+    <div class="progressStatus hide"></div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<span class="actions" style="float: right;">
+    <span class="dropdown">
+      <button class="btn btn-success btn-sm dropdown-toggle" id="download" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        <span class="glyphicon glyphicon-download"></span>&nbsp;Download File
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="download">
+        <li><a href="/api/v0/runs/{{runid}}/download_file?file=SampleSheet.csv">SampleSheet.csv</a></li>
+        <li><a href="/api/v0/runs/{{runid}}/download_file?file=RunParameters.xml">RunParameters.xml</a></li>
+      </ul>
+    </span>
+
+    <span class="dropdown">
+        <button class="btn btn-success btn-sm dropdown-toggle" id="upload" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+            <span class="glyphicon glyphicon-download"></span>&nbsp;Upload File
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="upload">
+            <li><a href="#" id="upload_samplesheet">Samplesheet</a></li>
+            <li><a href="#" id="upload_features">CITE-Seq features.csv</a></li>
+        </ul>
+    </span>
+
+    <span class="dropdown">
+      <button class="btn btn-success btn-sm dropdown-toggle" id="run_analysis" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+        <span class="glyphicon glyphicon-play-circle"></span>&nbsp;Run Analysis
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="run_analysis">
+        <li onclick="confirmRunAnalysis(0, 'bcl2fastq: Standard (no lane splitting)')"><a href="#">bcl2fastq: Standard (no lane splitting)</a></li>
+        <li onclick="confirmRunAnalysis(1, 'bcl2fastq: EdgeSeq (no mismatches)')"><a href="#">bcl2fastq: EdgeSeq (no mismatches)</a></li>
+        <li class="divider"></li>
+        <li onclick="confirmRunAnalysis(2, '10X CellRanger (hg38)')"><a href="#">10X CellRanger (hg38)</a></li>
+        <li onclick="confirmRunAnalysis(3, '10X CellRanger (mm10)')"><a href="#">10X CellRanger (mm10)</a></li>
+        <li onclick="confirmRunAnalysis(4, '10X CellRanger (Cyno)')"><a href="#">10X CellRanger (Cyno)</a></li>
+      </ul>
+    </span>
+</span>
+
+<div class="container theme-showcase" role="main">
+
+    <ul class="nav nav-tabs">
+        <li CLASS="active"><a data-toggle="tab" href="#samplesheet">Samplesheet</a></li>
+        <li><a data-toggle="tab" href="#indexqc">IndexQC</a></li>
+    </ul>
+
+    <div class="tab-content">
+
+        <div id="samplesheet" class="tab-pane fade in active">
+            <h2>{{experiment_name}}</h2>{{run_barcode}}
+            <div class="row" style="display: flex; padding: 0 15px 0 15px; margin-bottom: 15px; width: 100%;">
+                <div class="leftContent col" style="flex: 1; padding-right: 10px">
+                    <table class="table">
+                        <tbody class="headerTable">
+                            <h3>Header</h3>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="rightContent col" style="flex: 1;">
+                    <div>
+                        <table class="table">
+                            <tbody class="readsTable">
+                                <h3>Reads</h3>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <table class="table">
+                            <tbody class="settingsTable">
+                                <h3>Settings</h3>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <h3>Data</h3>
+                <table id="samplesTable" class="table table-striped" width="100%">
+                    <thead>
+                    <tr />
+                    </thead>
+                </table>
+            </div>
+        </div>
+
+        <div id="indexqc" class="tab-pane fade">
+            <div>
+                <table id="readCountTable" class="table table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Lane</th>
+                            <th>selected</th>
+                            <th>Total Reads</th>
+                            <th>PF Reads</th>
+                        </tr>
+                    </thead>
+                    <tbody/>
+                </table>
+            </div>
+
+            <div id="IndexQCBarChart"/>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    var selectedLane = null;
+    var indexMetrics = null;
+    $(document).ready( function () {
+        console.log("Running illumina_run::ready()")
+        // Begin Upload functionality
+        // https://stackoverflow.com/questions/2320069/jquery-ajax-file-upload
+        var Upload = function (file) {
+            this.file = file;
+        };
+        Upload.prototype.getType = function() {
+            return this.file.type;
+        };
+        Upload.prototype.getSize = function() {
+            return this.file.size;
+        };
+        Upload.prototype.getName = function() {
+            return this.file.name;
+        };
+        Upload.prototype.doUpload = function (url) {
+            var that = this;
+            var formData = new FormData();
+
+            // add assoc key values, this will be posts values
+            formData.append("file", this.file, this.getName());
+            formData.append("upload_file", true);
+
+            $('.progressStatus').removeClass('hide');
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                xhr: function () {
+                    var xhr = new window.XMLHttpRequest();
+                    // This event listener gets called when upload starts
+                    xhr.upload.addEventListener("progress", function (evt) {
+                        if (evt.lengthComputable) {
+                            var percentComplete = evt.loaded / evt.total;
+                            console.log(percentComplete);
+                            $('.progressStatus').css({
+                                width: percentComplete * 100 + '%'
+                            });
+                        }
+                    }, false);
+                    // This event listener gets called when upload continues/finishes
+                    xhr.addEventListener("progress", function (evt) {
+                        if (evt.lengthComputable) {
+                            var percentComplete = evt.loaded / evt.total;
+                            console.log(percentComplete);
+                            $('.progressStatus').css({
+                                width: percentComplete * 100 + '%'
+                            });
+                        }
+                    }, false);
+                    return xhr;
+                },
+                success: function (data) {
+                    window.location.reload();
+                },
+                error: function (error) {
+                    console.log("There was an error uploading the file");
+                },
+                async: true,
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                timeout: 60000
+            });
+        };
+        // End Upload functionality
+
+        // Begin Upload Samplesheet functionality
+        var uploadSampleSheet = null;
+        $("#upload_samplesheet").click(function() {
+            $.FileDialog({multiple: false}).on('files.bs.filedialog', function(ev) {
+                if (ev.files.length == 0) {
+                    alert("No file selected");
+                }
+                else if (ev.files.length == 1) {
+                    // There is limited checking I can do to ensure the file being uploaded is a text/csv from Windows.
+                    // I will accept the upload here and parse it on the server to be sure its correct.
+                    uploadSampleSheet = new Upload(ev.files[0]);
+                } else {
+                    alert("You can only upload 1 file.");
+                }
+            });
+        });
+
+        $(document).on('click', '.bfd-ok', function () {
+            if (uploadSampleSheet != null) {
+                uploadSampleSheet.doUpload("/api/v0/runs/{{runid}}/upload_sample_sheet");
+            }
+        });
+        // End Upload Samplesheet functionality
+
+        // Begin Upload features file functionality
+        var uploadFeaturesFile = null;
+        $("#upload_features").click(function() {
+            $.FileDialog({multiple: false}).on('files.bs.filedialog', function(ev) {
+                if (ev.files.length == 0) {
+                    alert("No file selected");
+                }
+                else if (ev.files.length == 1) {
+                    // There is limited checking I can do to ensure the file being uploaded is a text/csv from Windows.
+                    // I will accept the upload here and parse it on the server to be sure its correct.
+                    uploadFeaturesFile = new Upload(ev.files[0]);
+                } else {
+                    alert("You can only upload 1 file.");
+                }
+            });
+        });
+
+        $(document).on('click', '.bfd-ok', function () {
+            if (uploadSampleSheet != null) {
+                uploadSampleSheet.doUpload("/api/v0/runs/{{runid}}/upload_features_file");
+            }
+        });
+        // End Upload features file functionality
+
+        $('[data-toggle="tooltip"]').tooltip();
+
+		// Populate the samplesheet tables
+        $.get("/api/v0/runs/{{runid}}/sample_sheet", function (data) {
+            if (typeof data.Error != 'undefined') {
+                alert(data.Error);
+                return;
+            }
+
+            var dataHeader = data.Header;
+            var dataReads = data.Reads;
+            var dataSettings = data.Settings;
+            var dataSampleColumns = data.DataCols;
+            var dataSamples = data.Data;
+            var arr = Object.keys(dataHeader);
+            var arrReads = Object.keys(dataReads);
+            var arrSettings = Object.keys(dataSettings);
+
+            // If the header/samples sections are empty, assume there is no sample sheet.
+            // Disable the download and demultiplex buttons along with notifying the user.
+            if ((arr.length == 0) || (arrReads.length == 0) || (dataSamples.length == 0)) {
+                $('#demultiplex').attr("disabled", "disabled");
+            }
+
+            for(var i=0; i<arr.length; i++){
+                $('.headerTable').append('<tr>\n' +
+                    '        <td>'+ arr[i] +'</td>\n' +
+                    '        <td>' + dataHeader[arr[i]]+ '</td>\n' +
+                    '      </tr>')
+            };
+
+            for(var i=0; i<arrReads.length; i++){
+                $('.readsTable').append('<tr>\n' +
+                    '        <td>' + dataReads[arrReads[i]]+ '</td>\n' +
+                    '      </tr>')
+            };
+
+            for(var i=0; i<arrSettings.length; i++){
+                $('.settingsTable').append('<tr>\n' +
+                    '        <td>'+ arrSettings[i] +'</td>\n' +
+                    '        <td>' + dataSettings[arrSettings[i]]+ '</td>\n' +
+                    '      </tr>')
+            };
+
+            var dataColumns = new Array(dataSampleColumns.length);
+            for (i=0; i < dataSampleColumns.length; i++) {
+                dataColumns[i] = {'data': dataSampleColumns[i]};
+                $('#samplesTable > thead tr').append('<th>'+dataSampleColumns[i]+'</th>');
+            }
+            var table = $('#samplesTable').DataTable({
+                buttons: [ 'colvis' ],
+                columns: dataColumns,
+                data: dataSamples,
+                colReorder: true,
+                deferRender: true,
+                autoWidth: true,
+                order: [[0, 'asc']],
+                initComplete: function(settings, json) {
+                    table = settings.oInstance.api();
+                    table.buttons().container()
+                        .appendTo( $('.col-sm-6:eq(0)', table.table().container() ) );
+                    table.columns.adjust();
+                }
+            }); // DataTables - End
+            table.columns.adjust().draw();
+        }); // $.get - End
+        
+        // Get the data
+        $.get("/api/v0/runs/{{runid}}/metrics", function (data) {
+            // Determine total number of reads for each lane
+            laneResults = data["ConversionResults"];
+            var readCountData = Array(laneResults.length)
+            indexMetrics = Array(laneResults.length)
+            for (laneIndex=0; laneIndex < laneResults.length; laneIndex++) {
+                laneData = laneResults[laneIndex];
+
+                readCountData[laneIndex] = {"Lane": laneIndex+1, 
+                                            "Total Reads": parseInt(laneData["TotalClustersRaw"]) * 2,
+                                            "PF Reads": parseInt(laneData["TotalClustersPF"]) * 2
+                                           };
+
+                // Get Index metrics
+                var gdatatable = new google.visualization.DataTable();
+                gdatatable.addColumn('string', 'SampleId');
+                gdatatable.addColumn('number', '% Reads Identified');
+
+                totalClustersPF = laneData["TotalClustersPF"];
+                demuxResults = laneData["DemuxResults"];
+                for (sampleIndex=0; sampleIndex<demuxResults.length; sampleIndex++) {
+                    sampleId = demuxResults[sampleIndex]["SampleId"]
+                    numberReads = demuxResults[sampleIndex]["NumberReads"]
+                    pctReadsIdentified = numberReads / totalClustersPF * 100;
+                    gdatatable.addRows([ [sampleId, pctReadsIdentified] ]);
+                }
+                indexMetrics[laneIndex] = gdatatable;                
+            }
+            // Populate readCountTable
+            var readCountTable = $('#readCountTable').DataTable({
+                searching: false,
+                paging: false,
+                info: false,
+                columns: [
+                    { "data": "Lane", "orderable": false,},
+                    { "data": "Lane", "orderable": false, "visible": false},
+                    { "data": "Total Reads", "orderable": false,
+                      "render": function ( data, type, row, meta ) {
+                          return numberWithCommas(data);
+                      }
+                    },
+                    { "data": "PF Reads", "orderable": false,
+                      "render": function ( data, type, row, meta ) {
+                          return numberWithCommas(data);
+                      }
+                    }
+                ],
+                data: readCountData,
+                order: [[1, 'asc']],
+            });
+            // Add row selection support
+            $('#readCountTable tbody').on('click', 'tr', function() {
+                if ( $(this).hasClass('active') ) {
+                    $(this).removeClass('active');
+                } else {
+                    readCountTable.$('tr.active').removeClass('active');
+                    $(this).addClass('active');
+                    selectedLane = $(this)[0].sectionRowIndex;
+                    showIndexBarChart(selectedLane + 1, indexMetrics[selectedLane]);
+                }
+            });
+        }).error(function(xhr, ajaxOptions, thrownError) {
+            // hide readCountTable
+            $('#readCountTable').hide();
+        });
+    }); // onReady - End
+
+    function confirmRunAnalysis(optionSet, description) {
+        /* If Sample_Project field is empty for any of the samples, or not of the correct
+           format, do not allow demultiplexing to take place.
+
+           optionSet is one of:
+           0 - bcl2fastq: Standard (no lane splitting)
+           1 - bcl2fastq: EdgeSeq (no mismatches)
+           2 - 10X CellRanger (hg38)
+           3 - 10X CellRanger (mm10)
+           4 - 10X CellRanger (Cyno)
+        */
+        var isValid = true;
+        var table = $('#samplesTable').dataTable().api();
+        table.rows().every( function ( rowIdx, tableLoop, rowLoop ) {
+            var data = this.data();
+            if (data.Sample_Project == "") {
+                alert("Sample " + data.Sample_ID + " is missing a Project ID");
+                isValid = false;
+            }
+        });
+        if (isValid) {
+            var message = description + "?"
+            if (message) {
+                BootstrapDialog.confirm({
+                    title: "Confirm Run Analysis",
+                    message: message,
+                    callback: function(result) {
+                        if (result) {
+                            runAnalysis(optionSet);
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    function runAnalysis(optionSet) {
+        /*
+           optionSet is one of:
+           0 - bcl2fastq: Standard (no lane splitting)
+           1 - bcl2fastq: EdgeSeq (no mismatches)
+           2 - 10X CellRanger (hg38)
+           3 - 10X CellRanger (mm10)
+           4 - 10X CellRanger (Cyno)
+        */
+        jobStatusDialog = showJobStatusDialog("Run Analysis", null, null);
+        postData = JSON.stringify({});
+        if (optionSet == 1) {
+            postData = JSON.stringify({ 'ASSAY': 'EdgeSeq' });
+        } else if (optionSet == 2) {
+            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'hg38', 'user': "{{session.username}}"});
+        } else if (optionSet == 3) {
+            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'mm10', 'user': "{{session.username}}"});
+        } else if (optionSet == 4) {
+            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'cyno', 'user': "{{session.username}}"});
+        }
+        $.ajax({
+            url: "/api/v0/runs/{{runid}}/demultiplex",
+            type: "POST",
+            data: postData,
+            contentType: "application/json; charset=utf-8",
+            dataType:"json",
+            success: function(data) {
+                if ('jobs' in data) {
+                    jobStatusDialog.setMessage("Analysis pipeline started multiple jobs.  Please refer to <a href='/jobs'>Jobs</a> page for status/log information.")
+                } else {
+                    jobStatusDialog.setData('jobName', data['jobName']);
+                    jobStatusDialog.setData('jobId', data['jobId']);
+                }
+            },
+            error: function(data) {
+                console.log(data.responseText);
+                jobStatusDialog.setMessage('Unable to connect to server.  Please refresh the page and try again.');
+            }
+        });
+    }
+
+    function numberWithCommas(x) {
+        var parts = x.toString().split(".");
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return parts.join(".");
+    }
+
+    function showIndexBarChart(lane, dt) {
+        // Set chart options
+        var options = {
+            width: 1024,
+            height: 600,
+            legend: { position: 'none' },
+            hAxis: { textPosition: 'none',
+                     title: "Sample" },
+            vAxis: { title: "% Reads Identified (PF) "},
+            title: "Lane " + lane
+        }
+        // Instantiate and draw the chart.
+        var chart = new google.visualization.ColumnChart(document.getElementById('IndexQCBarChart'));
+        chart.draw(dt, options);
+    }
+</script>
+{% endblock %}

@@ -1,9 +1,10 @@
 '''
 Main application endpoints
 '''
-from flask import Blueprint, render_template, request, session, jsonify, current_app
+from flask import Blueprint, render_template, request, session, jsonify, current_app, abort
 from flask_login import login_required
 from app import project_registry
+from app.models import SequencingRun
 
 BP = Blueprint('main', __name__)
 
@@ -38,6 +39,22 @@ def show_batch_jobs():
 def show_illumina_runs():
     ''' Show Illumina Runs page '''
     return render_template('main/illumina_runs.html')
+
+@BP.route("/illumina_run")
+@login_required
+def show_illumina_run():
+    ''' Show an Illumina run '''
+    runid = request.args.get('runid')
+    if not runid:
+        return "Run ID not specified", 404
+
+    run = SequencingRun.query.get(runid)
+    if run:
+        run_barcode = "%s_%s_%s_%s" % (run.run_date.strftime("%y%m%d"), run.machine_id,
+                                       run.run_number.zfill(4), run.flowcell_id)
+        return render_template('main/illumina_run.html', runid=runid, run_barcode=run_barcode,
+                               experiment_name=run.experiment_name, flowcell=run.flowcell_id)
+    return abort(404)
 
 @BP.route("/projects")
 @login_required
