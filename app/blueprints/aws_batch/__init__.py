@@ -30,3 +30,4 @@ def submit_job(job_name, job_cmd, job_def, job_q, user):
                    user=user, status='SUBMITTED')
     db.session.add(job)
     db.session.commit()
+    return jsonify(response)
