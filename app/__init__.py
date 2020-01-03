@@ -80,6 +80,8 @@ def create_app(config_class=DefaultConfig):
 
     from app.blueprints.api import BP as api_bp
     app.register_blueprint(api_bp)
+    from app.api import BLUEPRINT as api_bp
+    app.register_blueprint(api_bp)
 
     from app.blueprints.user import BP as user_bp
     app.register_blueprint(user_bp)
