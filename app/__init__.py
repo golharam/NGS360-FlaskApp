@@ -42,7 +42,6 @@ def create_app(config_class=DefaultConfig):
 
     DB.init_app(app)
     MIGRATE.init_app(app, DB)
-    API.init_app(app)
 
     BASESPACE.init_app(app)
     BOTO3.init_app(app)
