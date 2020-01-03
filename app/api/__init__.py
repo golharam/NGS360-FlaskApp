@@ -5,6 +5,7 @@ Base of REST API
 from flask import Blueprint
 from flask_restplus import Api
 
+from .jobs import NS as jobs_ns
 from .notifications import NS as notifications_ns
 from .projects import NS as projects_ns
 from .runs import NS as runs_ns
@@ -19,6 +20,7 @@ API = Api(BLUEPRINT,
           version="1.0",
           description="Provide REST API endpoints for NGS 360")
 
+API.add_namespace(jobs_ns)
 API.add_namespace(notifications_ns)
 API.add_namespace(projects_ns)
 API.add_namespace(runs_ns)

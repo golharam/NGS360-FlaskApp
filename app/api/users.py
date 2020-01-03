@@ -5,6 +5,26 @@ from app.models import BatchJob, Notification
 
 NS = Namespace('users', description='User related operations')
 
+@NS.route("/<string:userid>/jobs")
+class UserJobs(Resource):
+    def get(userid):
+        '''
+        Return a list of jobs for a user.   Query string can contain options:
+
+        :param viewed: True/False - This option restricts what jobs are returned
+        '''
+        if 'viewed' in request.args:
+            if request.args.get('viewed').lower().startswith('t'):
+                viewed = True
+            else:
+                viewed = False
+            jobs = BatchJob.query.filter_by(user=userid).filter_by(viewed=viewed).all()
+        else:
+            jobs = BatchJob.query.filter_by(user=userid).all()
+        if not jobs:
+            return jsonify([])
+        return jsonify([job.to_dict() for job in jobs])
+
 @NS.route("/<string:userid>/notifications")
 class UserNotifications(Resource):
     def get(userid):
