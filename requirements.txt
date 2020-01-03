@@ -8,3 +8,5 @@ flask_wtf
 mysql-connector
 python-dotenv
 requests
+sample-sheet
+smart_open

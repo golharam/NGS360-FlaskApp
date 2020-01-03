@@ -7,13 +7,56 @@ Sequencing Runs
     POST    /api/v0/runs  Create/Add a sequencing run         Runs.post()
 '''
 import datetime
+import json
+from io import BytesIO
 
-from flask import abort, jsonify, request
+from flask import abort, jsonify, request, send_file, flash, current_app
+from flask_login import current_user
 from flask_restplus import Namespace, Resource
 
+from sample_sheet import SampleSheet
+
+from app import BOTO3 as boto3
 from app.models import SequencingRun
+from app.blueprints.aws_batch import submit_job
 
 NS = Namespace('runs', description='Runs related operations')
+
+def access(bucket, key):
+    '''
+    This function mimick os.access to check for a file
+    key is full s3 path to file eg s3://mybucket/myfile.txt
+    '''
+    paginator = s3.get_paginator('list_objects')
+    iterator = paginator.paginate(Bucket=bucket,
+                                  Prefix=key, Delimiter='/')
+    for responseData in iterator:
+        #common_prefixes = responseData.get('CommonPrefixes', [])
+        contents = responseData.get('Contents', [])
+        #if not contents: # and not common_prefixes:
+            #self._empty_result = True
+        #    return
+        #for common_prefix in common_prefixes:
+            # is Dir, should never occur
+        for content in contents:
+            return key == content['Key']
+    return False
+
+def find_bucket_key(s3path):
+    """
+    This is a helper function that given an s3 path such that the path is of
+    the form: bucket/key
+    It will return the bucket and the key represented by the s3 path, eg
+    if s3path == s3://bmsrd-ngs-data/P-234
+    """
+    if s3path.startswith('s3://'):
+        s3path = s3path[5:]
+    s3components = s3path.split('/')
+    bucket = s3components[0]
+    s3key = ""
+    if len(s3components) > 1:
+        s3key = '/'.join(s3components[1:])
+    return bucket, s3key
 
 @NS.route("")
 class Runs(Resource):
@@ -72,3 +115,174 @@ class Runs(Resource):
             abort(409)
         run = SequencingRun.query.filter_by(s3_run_folder_path=s3_run_folder_path).first()
         return jsonify({'run': run.to_dict()}), 201
+
+@NS.route("/<sequencing_run_id>")
+class Run(Resource):
+    def get(sequencing_run_id):
+        run = SequencingRun.query.get(sequencing_run_id)
+        if run:
+            return jsonify(run.to_dict())
+        return jsonify({})
+
+@NS.route("<sequencing_run_id>/demultiplex")
+class DemultiplexRun(Resource):
+    def post(sequencing_run_id):
+        # user is required for _submitJob
+        if request.json and 'user' in request.json:
+            user = request.json['user']
+        else:
+            user = current_user.username
+
+        run = SequencingRun.query.get(sequencing_run_id)
+        run_barcode = "%s_%s_%s_%s" % (run.run_date.strftime("%y%m%d"), run.machine_id,
+                                       run.run_number, run.flowcell_id)
+
+        if request.json and 'ASSAY' in request.json and request.json['ASSAY'] == "EdgeSeq":
+            job_name = 'edgeseq-%s' % run_barcode
+            options = "--barcode-mismatches 0"
+            batch_job = current_app.config['BCL2FASTQ_JOB']
+            job_q = current_app.config['BCL2FASTQ_QUEUE']
+            container_overrides = {
+                "environment": [
+                    {"name": "RUN_FOLDER_S3_PATH", "value": run.s3_run_folder_path},
+                    {"name": "OPTIONS", "value": options}
+                ],
+                "memory": 32000,
+                "vcpus": 8
+            }
+        elif request.json and 'ASSAY' in request.json and request.json['ASSAY'] == "scRNASeq":
+            data = {"user": request.json['user'],
+                    "s3_runfolder_path": run.s3_run_folder_path,
+                    "reference": request.json['reference']}
+            response = boto3.clients['lambda'].invoke(
+                FunctionName=current_app.config['SCRNASEQ_LAMBDA_FN'],
+                InvocationType='RequestResponse',
+                LogType='None',
+                Payload=json.dumps(data))
+            payload = response['Payload'].read()
+            return payload
+        else:
+            # Perform standard demultiplexing
+            job_name = 'demultiplex-%s' % run_barcode
+            options = "--no-lane-splitting"
+            batch_job = current_app.config['BCL2FASTQ_JOB']
+            job_q = current_app.config['BCL2FASTQ_QUEUE']
+            container_overrides = {
+                "environment": [
+                    {"name": "RUN_FOLDER_S3_PATH", "value": run.s3_run_folder_path},
+                    {"name": "OPTIONS", "value": options}
+                ],
+                "memory": 32000,
+                "vcpus": 8
+            }
+
+        return submit_job(job_name, container_overrides, batch_job, job_q, user)
+
+# /api/v0/runs/<sequencing_run_id>/download_sample_sheet should redirect to here
+@NS.route("/<sequencing_run_id>/download_file")
+class DownloadFile(Resource):
+    def get(sequencing_run_id):
+        run = SequencingRun.query.get(sequencing_run_id)
+        if not run:
+            abort(404)
+
+        s3_file_path = "%s/%s" % (run.s3_run_folder_path, request.args.get('file'))
+        bucket, key = find_bucket_key(s3_file_path)
+        if access(bucket, key):
+            data = boto3.clients['s3'].get_object(Bucket=bucket, Key=key)
+            content = data['Body'].read()
+            content_io = ByteIO(content)
+            return send_file(content_io, mimetype="text/plain", as_attachment=True,
+                             attachment_filename=request.args.get('file'))
+        abort(404)
+
+@NS.route("/<sequencing_run_id>/sample_sheet")
+class SampleSheet(Resource):
+    def get(sequencing_run_id):
+        ss_json = {'Summary': {}, 'Header': {},
+                   'Reads': {}, 'Settings': {},
+                   'DataCols': [], 'Data': []}
+        run = SequencingRun.query.get(sequencing_run_id)
+        if run:
+            ss_json['Summary'] = run.to_dict()
+            sample_sheet_path = "%s/SampleSheet.csv" % run.s3_run_folder_path
+            bucket, key = find_bucket_key(sample_sheet_path)
+            if access(bucket, key):
+                ss = SampleSheet(sample_sheet_path)
+                ss = json.loads(ss.to_json())
+                ss_json['Header'] = ss['Header']
+                ss_json['Reads'] = ss['Reads']
+                ss_json['Settings'] = ss['Settings']
+                ss_json['DataCols'] = list(ss['Data'][0].keys())
+                ss_json['Data'] = ss['Data']
+        return jsonify(ss_json)
+
+@NS.route("<sequencing_run_id>/upload_features_file")
+class UploadFeaturesFile(Resource):
+    def post(sequencing_run_id):
+        # Code from http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file provided', 'danger')
+            return 'OK', 200
+
+        file = request.files['file']
+        # if user does not select file, browser also submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return 'OK', 200
+
+        run = SequencingRun.query.get(sequencing_run_id)
+        if not run:
+            abort(404)
+        features_file = "%s/features.csv" % run.s3_run_folder_path
+        bucket, key = find_bucket_key(features_file)
+        boto3.clients['s3'].put_object(Body=file, Bucket=bucket, Key=key,
+                                       ServerSideEncryption='AES256')
+        flash('File uploaded', 'success')
+        return 'OK', 200
+
+@NS.route("<sequencing_run_id>/upload_sample_sheet")
+class UploadSampleSheet(Resource):
+    def post(sequencing_run_id):
+        # Code from http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file provided', 'danger')
+            return 'OK', 200
+
+        file = request.files['file']
+        # if user does not select file, browser also submit an empty part without filename
+        if file.filename == '':
+            flash('No selected file', 'danger')
+            return 'OK', 200
+
+        # Make sure samplesheet is a valid samplesheet
+        # TODO: Simpilfy this code to use sample-sheet package.  If sample-sheet can read/parse
+        # the sample sheet, then consider it valid.   Need to upgrade to Python3 for sample-sheet.
+        (header, reads, settings, data) = (False, False, False, False)
+        for line in file:
+            if line.startswith('[Header]'):
+                header = True
+            if line.startswith('[Reads]'):
+                reads = True
+            if line.startswith('[Settings]'):
+                settings = True
+            if line.startswith('[Data]'):
+                data = True
+        file.seek(0)
+
+        if header and reads and settings and data:
+            run = SequencingRun.query.get(sequencing_run_id)
+            if not run:
+                abort(404)
+            sample_sheet = "%s/SampleSheet.csv" % run.s3_run_folder_path
+            bucket, key = find_bucket_key(sample_sheet)
+            boto3.clients['s3'].put_object(Body=file, Bucket=bucket, Key=key,
+                                           ServerSideEncryption='AES256')
+            flash('Sample sheet uploaded', 'success')
+        else:
+            error_msg = "Invalid sample sheet. Header, Reads, Settings and/or Data section " + \
+                        "is missing."
+            flash(error_msg, 'danger')
+        return 'OK', 200

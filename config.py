@@ -33,7 +33,11 @@ class DefaultConfig:
 
     BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
 
-    BOTO3_SERVICES = ['batch', 'logs']
+    BCL2FASTQ_JOB = os.environ.get('BCL2FASTQ_JOB') or None
+    BCL2FASTQ_QUEUE = os.environ.get('BCL2FASTQ_QUEUE') or None
+    SCRNASEQ_LAMBDA_FN = os.environ.get('SCRNASEQ_LAMBDA_FN') or None
+
+    BOTO3_SERVICES = ['batch', 'lambda', 'logs']
     JOB_DEFINITION = os.environ.get('NGS_JOB') or None
     JOB_QUEUE = os.environ.get('NGS_JOB_QUEUE') or None
 
