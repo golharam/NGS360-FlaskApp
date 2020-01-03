@@ -49,6 +49,7 @@ class DefaultConfig:
     # JIRA_BUGREPORT =
 
     HELP_URL = os.environ.get("HELP_URL") or None
+    XPRESS_RESTAPI_ENDPOINT = os.environ.get("XPRESS_RESTAPI_ENDPOINT") or None
 
 class TestConfig(DefaultConfig):
     ''' Config settings for unit testing '''
