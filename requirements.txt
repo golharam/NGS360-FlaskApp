@@ -1,8 +1,9 @@
 flask
 flask-boto3
-flask_sqlalchemy
-flask_migrate
-flask_wtf
 flask-login
+flask_migrate
+flask-restplus
+flask_sqlalchemy
+flask_wtf
 python-dotenv
 mysql-connector
