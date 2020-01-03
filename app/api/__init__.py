@@ -8,6 +8,7 @@ from .samples import NS as samples_ns
 from .xpress import NS as xpress_ns
 from .runs import NS as runs_ns
 from .projects import NS as projects_ns
+from .users import NS as users_ns
 
 BLUEPRINT = Blueprint('rest_api', __name__, url_prefix='/api/v0')
 
@@ -19,4 +20,5 @@ API = Api(BLUEPRINT,
 API.add_namespace(projects_ns)
 API.add_namespace(runs_ns)
 API.add_namespace(samples_ns)
+API.add_namespace(users_ns)
 API.add_namespace(xpress_ns)
