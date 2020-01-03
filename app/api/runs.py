@@ -5,6 +5,21 @@ Sequencing Runs
     ----    ---           ------                              -----------
     GET     /api/v0/runs  Retrieve a list of sequencing runs  Runs.get()
     POST    /api/v0/runs  Create/Add a sequencing run         Runs.post()
+
+Sequencing Runs
+--------
+HTTP URI                                                       Action                                  Implemented
+---- ---                                                       ------                                  -----------
+GET    /api/v0/runs/[id]                                       Retrieve info about a specific run      get_run(id)
+GET    /api/v0/runs/[id]/sample_sheet                          Retrieve the sample sheet for the run   get_run_sample_sheet(id)
+GET    /api/v0/runs/[id]/download_file?file=<file_to_download> Download a file                         download_file(id, file)
+POST   /api/v0/runs/[id]/upload_features_file                                                          upload_features_file(sequencing_run_id)
+POST   /api/v0/runs/[id]/upload_sample_sheet                                                           upload_sample_sheet(sequencing_run_id)
+PUT    /api/v0/runs/[id]/samples                               Map samples to an existing run          put_samples(id)
+DELETE /api/v0/runs/[id]/samples                               Delete samples associated with run      delete_samples(id)
+POST   /api/v0/runs/[id]/demultiplex                                                                   demultiplex(id)
+GET    /api/v0/runs/[id]/metrics                               Retrieve demux metrics from Stat.json   get_metrics(id)
+
 '''
 import datetime
 import json
@@ -124,7 +139,7 @@ class Run(Resource):
             return jsonify(run.to_dict())
         return jsonify({})
 
-@NS.route("<sequencing_run_id>/demultiplex")
+@NS.route("/<sequencing_run_id>/demultiplex")
 class DemultiplexRun(Resource):
     def post(sequencing_run_id):
         # user is required for _submitJob
@@ -196,6 +211,20 @@ class DownloadFile(Resource):
                              attachment_filename=request.args.get('file'))
         abort(404)
 
+@NS.route("/<sequencing_run_id>/metrics")
+class SequencingRunMetrics(Resource):
+    def get(sequencing_run_id):
+        run = SequencingRun.query.get(sequencing_run_id)
+        if not run:
+            return '{"Status": "error", "Message": "Run not found"}', 404
+        s3StatsJsonFile = "%s/Stats/Stats.json" % run.s3_run_folder_path
+        bucket, key = find_bucket_key(s3StatsJsonFile)
+        if access(bucket, key) == False:
+            return '{"Status": "error", "Message": "%s not found"}' % s3StatsJsonFile, 404
+        data = s3.get_object(Bucket=bucket, Key=key)
+        json_stats = json.loads(data['Body'].read())
+        return jsonify(json_stats)
+
 @NS.route("/<sequencing_run_id>/sample_sheet")
 class SampleSheet(Resource):
     def get(sequencing_run_id):
@@ -217,7 +246,102 @@ class SampleSheet(Resource):
                 ss_json['Data'] = ss['Data']
         return jsonify(ss_json)
 
-@NS.route("<sequencing_run_id>/upload_features_file")
+@NS.route("/<sequencing_run_id>/samples")
+class Samples(Resource):
+    def delete(sequencing_run_id):
+        """
+        This function and API endpoint delete samples (RunToSamples objects
+        in the database) associated with a run.
+        """
+        run = SequencingRun.query.get(sequencing_run_id)
+        if not run:
+            return '{"Status": "Not Found", "Message": "Run not found"}', 404
+
+        if not request.json:
+            # Delete all samples associated with run
+            desired_samples_mappings = RunToSamples.query.filter(
+                RunToSamples.sequencing_run_id == sequencing_run_id)
+            desired_samples_mappings.delete()
+            db.session.commit()
+            return '{"Status": "OK"}', 200
+        else:
+            # Delete specific samples associated with run
+            sample_ids = request.json['sample_ids']
+            desired_samples_mappings = RunToSamples.query.filter(
+                RunToSamples.sequencing_run_id == sequencing_run_id,
+                RunToSamples.sample_id.in_(sample_ids))
+
+        successful_deletions = []
+        unsuccessful_deletions = []
+        for mapping in desired_samples_mappings:
+            try:
+                db.session.delete(mapping)
+                db.session.commit()
+                successful_deletions.append(mapping.sample_id)
+            except:
+                db.session.rollback()
+                unsuccessful_deletions.append(mapping.sample_id)
+
+        # Return 200 HTTP code and samples that were successully deleted and those that
+        # were unsuccessfully deleted
+        return jsonify({"Status": "OK", "Successful deletions": successful_deletions,
+                        "Unsuccessful deletions": unsuccessful_deletions}), 200
+
+    def put(sequencing_run_id):
+        """
+        Create a mapping between a run, an associated project, and associated
+        samples by creating new objects in the RunToSamples table.
+
+        :param sequencing_run_id: Sequencing Run ID
+        :returns: Either HTTP success code with info of mapping that was just
+        created or HTTP error code if an error occurred.
+
+        JSON post data is a list of samples and projectid:
+        [{'sampleid': sampleid, 'projectid': projectid},
+        ...
+        ]
+        """
+        run = SequencingRun.query.get(sequencing_run_id)
+        if not run:
+            return '{"Status": "Not Found", "Message": "Run not found"}', 404
+
+        if not request.json:
+            return ('{"Status": "Bad Request", "Message": "No json data included in the '
+                'request, or json data is empty"}', 400)
+
+        new_runtosamples_objs = []
+
+        # Do this in case there is only one mapping sent, and it is not formatted as a list
+        if type(request.json) != list:
+            request.json = [request.json]
+
+        for mapping in request.json:
+            run_to_samples_mapping = RunToSamples(sequencing_run_id=sequencing_run_id)
+
+            if 'sampleid' in mapping:
+                run_to_samples_mapping.sample_id = mapping['sampleid']
+            else:
+                return ('{"Status": "Bad Request", "Message": "All mappings in '
+                        'request must include Samples to map to Sequencing Run"}', 400)
+
+            if 'projectid' in mapping:
+                projectid = mapping['projectid']
+            else:
+                projectid = None
+            run_to_samples_mapping.project_id = projectid
+            new_runtosamples_objs.append(run_to_samples_mapping)
+
+        db.session.add_all(new_runtosamples_objs)
+
+        try:
+            db.session.commit()
+            return jsonify({"Status": "OK", "Successful mappings": request.json}), 200
+        except:
+            db.session.rollback()
+            return jsonify({"Status": "Internal Server Error",
+                            "Message": "Run to Samples mappings could not be saved"}), 500
+
+@NS.route("/<sequencing_run_id>/upload_features_file")
 class UploadFeaturesFile(Resource):
     def post(sequencing_run_id):
         # Code from http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
@@ -242,7 +366,7 @@ class UploadFeaturesFile(Resource):
         flash('File uploaded', 'success')
         return 'OK', 200
 
-@NS.route("<sequencing_run_id>/upload_sample_sheet")
+@NS.route("/<sequencing_run_id>/upload_sample_sheet")
 class UploadSampleSheet(Resource):
     def post(sequencing_run_id):
         # Code from http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
