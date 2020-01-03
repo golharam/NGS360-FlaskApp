@@ -10,5 +10,5 @@ mysql-connector
 python-dotenv
 requests
 sample-sheet
-sevenbridges
+sevenbridges-python
 smart_open

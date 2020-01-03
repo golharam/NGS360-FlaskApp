@@ -9,9 +9,9 @@ NGS 360 Projects
     PUT     /api/v0/projects/[project_id]   Update an existing project
     DELETE  /api/v0/projects/[project_id]   Delete a project (this will always return not authorized)
 '''
-from flask import request, abort, current_app
+from flask import request, abort, current_app, jsonify
 from flask_login import current_user
-from flask_restplus import Namespace, Resource, jsonify
+from flask_restplus import Namespace, Resource
 from app.models import Project, RunToSamples, SequencingRun
 from app.biojira import getJira, getTBioPMJiraIssues, addCommentToIssues
 from app.blueprints.aws_batch import submit_job
