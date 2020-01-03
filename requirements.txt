@@ -5,8 +5,10 @@ flask_migrate
 flask-restplus
 flask_sqlalchemy
 flask_wtf
+jira
 mysql-connector
 python-dotenv
 requests
 sample-sheet
+sevenbridges
 smart_open
