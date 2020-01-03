@@ -17,7 +17,7 @@ from app.models import ProjectSample
 
 NS = Namespace('samples', description='Samples related operations')
 
-@NS.route("/samples")
+@NS.route("")
 class SampleList(Resource):
 
     def delete(self):
@@ -95,7 +95,7 @@ class SampleList(Resource):
                 "Message": "Sample(s) could not be created"
             }, 500
 
-@NS.route("/samples/<int:sample_pk>")
+@NS.route("/<int:sample_pk>")
 class Sample(Resource):
 
     def get(self, sample_pk):

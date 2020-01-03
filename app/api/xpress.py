@@ -20,7 +20,7 @@ from app.models import Project
 
 NS = Namespace('xpress', description='Xpress related operations')
 
-@NS.route("/xpress/<int:xpress_project_id>")
+@NS.route("/<int:xpress_project_id>")
 class XpressProject(Resource):
     def get(self, xpress_project_id):
         '''
