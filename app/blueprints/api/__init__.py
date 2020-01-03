@@ -4,7 +4,7 @@ Notifications Endpoint
 import datetime
 import json
 from io import BytesIO
-from flask import Blueprint, request, jsonify, abort, current_app
+from flask import Blueprint, request, jsonify, abort, current_app, send_file
 from sample_sheet import SampleSheet
 from app import DB as db, BOTO3 as boto3
 from app.models import BatchJob, Notification, SequencingRun
@@ -191,6 +191,21 @@ def create_run():
         abort(409)
     run = SequencingRun.query.filter_by(s3_run_folder_path=s3_run_folder_path).first()
     return jsonify({'run': run.to_dict()}), 201
+
+@BP.route("/api/v0/runs/<sequencing_run_id>/download_file", methods=["GET"])
+def download_file(sequencing_run_id):
+    run = SequencingRun.query.get(sequencing_run_id)
+    if not run:
+        abort(404)
+    s3_file_path = "%s/%s" % (run.s3_run_folder_path, request.args.get('file'))
+    bucket, key = find_bucket_key(s3_file_path)
+    if access(bucket, key):
+        data = boto3.clients['s3'].get_object(Bucket=bucket, Key=key)
+        content = data['Body'].read()
+        content_io = BytesIO(content)
+        return send_file(content_io, mimetype="text/plain", as_attachment=True,
+                         attachment_filename=request.args.get('file'))
+    abort(404)
 
 @BP.route("/api/v0/runs/<sequencing_run_id>/sample_sheet", methods=["GET"])
 def get_run_sample_sheet(sequencing_run_id):
