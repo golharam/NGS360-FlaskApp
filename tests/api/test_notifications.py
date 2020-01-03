@@ -1,8 +1,10 @@
 '''
 Unit Tests for /api/v0/notifications
 '''
+import json
 from unittest import TestCase
 from app import create_app, DB as db
+from app.models import Notification
 from config import TestConfig
 
 class NotificationTests(TestCase):
@@ -30,7 +32,6 @@ class NotificationTests(TestCase):
         response = self.client.put('/api/v0/notifications/%s' % notification.id,
                                    data=json.dumps({"seen": True}),
                                    content_type='application/json')
-
         # Check
         assert response.status_code == 200
         notifications = Notification.query.filter_by(user='testuser').filter_by(seen=True)

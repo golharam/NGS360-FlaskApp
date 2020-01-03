@@ -3,6 +3,7 @@ Unit Tests for /api/v0/users
 '''
 from unittest import TestCase
 from app import create_app, DB as db
+from app.models import Notification
 from config import TestConfig
 
 class UserTests(TestCase):
@@ -28,7 +29,6 @@ class UserTests(TestCase):
         db.session.commit()
         response = self.client.get('/api/v0/users/testuser/notifications')
         assert len(response.json) == 3
-
 
     def test_get_user_notifications_seen(self):
         ''' Test when no user is specified '''

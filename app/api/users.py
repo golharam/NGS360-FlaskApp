@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request
 from flask_restplus import Namespace, Resource
 from app import DB as db
 from app.models import BatchJob, Notification
@@ -7,7 +7,7 @@ NS = Namespace('users', description='User related operations')
 
 @NS.route("/<string:userid>/jobs")
 class UserJobs(Resource):
-    def get(userid):
+    def get(self, userid):
         '''
         Return a list of jobs for a user.   Query string can contain options:
 
@@ -21,13 +21,14 @@ class UserJobs(Resource):
             jobs = BatchJob.query.filter_by(user=userid).filter_by(viewed=viewed).all()
         else:
             jobs = BatchJob.query.filter_by(user=userid).all()
-        if not jobs:
-            return jsonify([])
-        return jsonify([job.to_dict() for job in jobs])
+        job_list = []
+        for job in jobs:
+            job_list.append(job.to_dict())
+        return job_list
 
 @NS.route("/<string:userid>/notifications")
 class UserNotifications(Resource):
-    def get(userid):
+    def get(self, userid):
         '''
         Returns a list of notification for a user.  Query string can contain options:
 
@@ -39,22 +40,22 @@ class UserNotifications(Resource):
         else:
             notifications = Notification.query.filter_by(user=userid).all()
         if not notifications:
-            return jsonify([])
-        return jsonify([notification.to_dict() for notification in notifications])
+            return []
+        return [notification.to_dict() for notification in notifications]
 
 @NS.route("/<string:userid>/notifications/clear")
 class UserNotificationsClear(Resource):
-    def get(userid):
+    def get(self, userid):
         '''
         Clear/Reset the user's notifications
         '''
         Notification.query.filter_by(user=userid).filter_by(seen=False).update(dict(seen=True))
         db.session.commit()
-        return '{"Status": "Notifications cleared"}', 200
+        return {"Status": "Notifications cleared"}
 
 @NS.route("/<string:userid>/notification_joblist")
 class UserNotificationJobList(Resource):
-    def get(userid):
+    def get(self, userid):
         '''
         Return a list of jobs based on occurred_on notification datetime, e.g.,
         SELECT batch_job.name, notification.batchjob_id, notification.occurred_on, batch_job.viewed
@@ -92,8 +93,8 @@ class UserNotificationJobList(Resource):
         json_response = []
         for notified_job in notified_job_list:
             jnj = {'batchjob_id': notified_job[0],
-                'viewed': notified_job[1],
-                'occurred_on': notified_job[2].isoformat() + 'Z',
-                'name': notified_job[3]}
+                   'viewed': notified_job[1],
+                   'occurred_on': notified_job[2].isoformat() + 'Z',
+                   'name': notified_job[3]}
             json_response.append(jnj)
-        return jsonify(json_response), 200
+        return json_response
