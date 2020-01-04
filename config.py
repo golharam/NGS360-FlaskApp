@@ -82,4 +82,4 @@ class TestConfig(DefaultConfig):
     # Assist to mock flask-boto3 so as to not read env profile
     BOTO3_ACCESS_KEY = 'access'
     BOTO3_SECRET_KEY = 'secret'
-    BOTO3_PROFILE = 'default'
+    #BOTO3_PROFILE = 'default'
