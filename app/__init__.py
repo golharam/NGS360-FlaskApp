@@ -14,12 +14,14 @@ from flask_boto3 import Boto3
 
 from config import DefaultConfig
 from app.BaseSpace import BaseSpace
+from app.SevenBridges import SevenBridges
 
 DB = SQLAlchemy()
 MIGRATE = Migrate()
 LOGINMANAGER = LoginManager()
 BASESPACE = BaseSpace()
 BOTO3 = Boto3()
+SEVENBRIDGES = SevenBridges()
 
 def create_app(config_class=DefaultConfig):
     '''
@@ -34,6 +36,7 @@ def create_app(config_class=DefaultConfig):
     app.logger.info("Connect to database %s", app.config['SQLALCHEMY_DATABASE_URI'])
     app.logger.info("ProjectRegister URL: %s", app.config['PROJECTREGISTRY'])
     app.logger.info("BaseSpace Token: %s", app.config['BASESPACE_TOKEN'])
+    app.logger.info("SevenBridges Token: %s", app.config['SB_AUTH_TOKEN'])
     app.logger.info("AWS Batch Job Definition: %s", app.config['JOB_DEFINITION'])
     app.logger.info("AWS Batch Job Queue: %s", app.config['JOB_QUEUE'])
 
@@ -45,6 +48,7 @@ def create_app(config_class=DefaultConfig):
 
     BASESPACE.init_app(app)
     BOTO3.init_app(app)
+    SEVENBRIDGES.init_app(app)
 
     if not app.debug and not app.testing:
         # If FLASK_LOG_FILE and FLASK_LOG_LEVEL env vars defined, set up logging.
@@ -78,7 +82,7 @@ def create_app(config_class=DefaultConfig):
     from app.blueprints.main import BP as main_bp
     app.register_blueprint(main_bp)
 
-    from app.blueprints.api import BP as api_bp
+    from app.api import BLUEPRINT as api_bp
     app.register_blueprint(api_bp)
 
     from app.blueprints.user import BP as user_bp
