@@ -32,10 +32,22 @@ class DefaultConfig:
     # FLASK_LOG_LEVEL = INFO
 
     BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
+    SB_AUTH_TOKEN = os.environ.get('SB_AUTH_TOKEN') or None
 
-    BOTO3_SERVICES = ['batch', 'logs', 's3']
+    BCL2FASTQ_JOB = os.environ.get('BCL2FASTQ_JOB') or None
+    BCL2FASTQ_QUEUE = os.environ.get('BCL2FASTQ_QUEUE') or None
+    SCRNASEQ_LAMBDA_FN = os.environ.get('SCRNASEQ_LAMBDA_FN') or None
+
+    BOTO3_SERVICES = ['batch', 'lambda', 'logs', 's3']
+
     JOB_DEFINITION = os.environ.get('NGS_JOB') or None
     JOB_QUEUE = os.environ.get('NGS_JOB_QUEUE') or None
+
+    JIRA_SERVER = os.environ.get('JIRA_SERVER') or None
+    JIRA_USER = os.environ.get('JIRA_USER') or None
+    JIRA_PASSKEY = os.environ.get('JIRA_PASSKEY') or None
+    JIRA_BOARD = os.environ.get('JIRA_BOARD') or None
+    JIRA_PROJECTID_FIELD = os.environ.get('JIRA_PROJECTID_FIELD') or None
 
     # Email error log settings
     # MAIL_SERVER = mailserver
@@ -47,6 +59,9 @@ class DefaultConfig:
 
     # JIRA_FEEDBACK =
     # JIRA_BUGREPORT =
+
+    HELP_URL = os.environ.get("HELP_URL") or None
+    XPRESS_RESTAPI_ENDPOINT = os.environ.get("XPRESS_RESTAPI_ENDPOINT") or None
 
 class TestConfig(DefaultConfig):
     ''' Config settings for unit testing '''

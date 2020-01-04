@@ -32,6 +32,10 @@ def submit_job(job_name, job_cmd, job_def, job_q, user):
     db.session.commit()
     return jsonify(response)
 
+'''
+The following methods are old, but used.  I'd like to phase them out in favor of the REST API
+'''
+
 # TBD: The following methods are old, but used.  I'd like to phase them out in favor of the REST API
 @BP.route("/get_aws_job_state/<job_name>/<jobid>/<log_lines>")
 def get_aws_job_state(job_name, jobid, log_lines):
@@ -64,11 +68,11 @@ def get_aws_job_state(job_name, jobid, log_lines):
             if job:
                 job.log_stream_name = log_stream_name
                 db.session.commit()
-#            try:
+#           try:
             resp = boto3.clients['logs'].get_log_events(logGroupName="/aws/batch/job",
                                                         logStreamName=log_stream_name)
             events = resp['events']
-#            except:
+#           except:
 #                response = {'status': 'Error',
 #                            'log': "No log (yet) available"
 #                           }
@@ -87,3 +91,25 @@ def get_aws_job_state(job_name, jobid, log_lines):
                 'log': log
                }
     return jsonify(response)
+
+@BP.route("/get_aws_log_stream/<job_name>/<job_id>")
+def get_log_stream(job_name, job_id):
+    logStreamPrefix="%s/%s" % (job_name, job_id)
+    logStream = cloudlog.describe_log_streams(
+            logGroupName="/aws/batch/job",
+            logStreamNamePrefix=logStreamPrefix)
+    return logStream['logStreams'][0]['logStreamName']
+
+@BP.route("/get_aws_cloudwatch_lastlogentry/<job_name>/<job_id>/<log_id>/<lines>")
+def getLastLogEntry(job_name, job_id, log_id, lines):
+    logStreamName = "%s/%s/%s" % (job_name, job_id, log_id)
+    resp = boto3.clients['logs'].get_log_events(
+            logGroupName="/aws/batch/job",
+            logStreamName=logStreamName)
+    events = resp['events']
+    logEntries = []
+    limit = int(lines)
+    for i in range(1,limit):
+        logEntries.append(events['message'])
+
+    return '\n'.join(logEntries)

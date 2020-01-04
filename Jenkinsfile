@@ -1,5 +1,5 @@
 pipeline {
-  agent { docker { image 'markadams/chromium-xvfb-py3' } }
+  agent { docker { image 'ngsbioinformatics/chromium-xvfb-py36:latest' } }
   stages {
     stage('Install Requirements') {
       steps {
