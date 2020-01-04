@@ -16,8 +16,11 @@ class BlueprintMainTests(TestCase):
         self.app_context = self.app.app_context()
         self.app_context.push()
         self.client = self.app.test_client()
+        db.create_all()
 
     def tearDown(self):
+        db.session.remove()
+        db.drop_all()
         self.client = None
         self.app_context.pop()
 
@@ -37,6 +40,11 @@ class BlueprintMainTests(TestCase):
     def test_projects(self):
         ''' Test /projects '''
         res = self.client.get('/projects')
+        assert res.status_code == 200
+
+    def test_project(self):
+        ''' Test /projects/P-1 '''
+        res = self.client.get('/projects/P-1')
         assert res.status_code == 200
 
     def test_jobs(self):

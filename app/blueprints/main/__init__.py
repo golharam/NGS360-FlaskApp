@@ -3,8 +3,8 @@ Main application endpoints
 '''
 from flask import Blueprint, render_template, request, session, jsonify, current_app, abort
 from flask_login import login_required
-from app import project_registry
-from app.models import SequencingRun
+from app import project_registry, BASESPACE as base_space, DB as db
+from app.models import Project, RunToSamples, SequencingRun
 
 BP = Blueprint('main', __name__)
 
@@ -62,11 +62,32 @@ def show_projects():
     ''' Show Projects page '''
     return render_template('main/projects.html')
 
-@BP.route("/project/<projectid>")
+@BP.route("/projects/<projectid>")
 @login_required
 def show_project(projectid):
     ''' Show Project page '''
-    return render_template('main/project.html')
+    basespace_project = base_space.get_project_id(projectid)
+    project = Project.query.get(projectid)
+
+    if project:
+        xpress_project_id = project.xpress_project_id
+    else:
+        xpress_project_id = 0
+
+    runs = db.session.query(SequencingRun).join(RunToSamples).filter(
+        RunToSamples.project_id == projectid).distinct(RunToSamples.sequencing_run_id)
+    associated_runs = []
+    for run in runs:
+        if run.experiment_name:
+            barcode = run.experiment_name
+        else:
+            barcode = "%s_%s_%s_%s" % (run.run_date.strftime("%y%m%d"), run.machine_id,
+                                       run.run_number.zfill(4), run.flowcell_id)
+        associated_runs.append({'id': run.id, 'barcode': barcode})
+    return render_template('main/project.html', projectid=projectid,
+                           basespace_project=basespace_project,
+                           xpress_project_id=xpress_project_id,
+                           runs=associated_runs)
 
 # TODO: Move this to a REST Endpoint
 @BP.route("/projectregistry_json")
