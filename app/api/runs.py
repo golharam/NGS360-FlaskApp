@@ -42,7 +42,7 @@ def access(bucket, key):
     This function mimick os.access to check for a file
     key is full s3 path to file eg s3://mybucket/myfile.txt
     '''
-    paginator = s3.get_paginator('list_objects')
+    paginator = boto3.clients['s3'].get_paginator('list_objects')
     iterator = paginator.paginate(Bucket=bucket,
                                   Prefix=key, Delimiter='/')
     for responseData in iterator:
@@ -213,7 +213,7 @@ class DownloadFile(Resource):
 
 @NS.route("/<sequencing_run_id>/metrics")
 class SequencingRunMetrics(Resource):
-    def get(sequencing_run_id):
+    def get(self, sequencing_run_id):
         run = SequencingRun.query.get(sequencing_run_id)
         if not run:
             return '{"Status": "error", "Message": "Run not found"}', 404
