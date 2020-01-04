@@ -4,7 +4,6 @@ Test /api/v0/runs endpoint
 import datetime
 import unittest
 from unittest import TestCase
-from mock import patch
 from moto import mock_s3
 from app import create_app, DB as db, BOTO3 as boto3
 from app.models import SequencingRun
@@ -44,7 +43,8 @@ class RunsTests(TestCase):
 
         response = self.client.get('/api/v0/runs/1/metrics')
         assert response.status_code == 404
-        assert response.json == {"Status": "error", "Message": "s3://somebucket/PHIX3_test/Stats/Stats.json not found"}
+        assert response.json == {"Status": "error",
+                                 "Message": "s3://somebucket/PHIX3_test/Stats/Stats.json not found"}
 
     @mock_s3
     def test_get_run_metrics(self):
@@ -64,6 +64,92 @@ class RunsTests(TestCase):
         response = self.client.get('/api/v0/runs/1/metrics')
         assert response.status_code == 200
         assert response.json == {"metrics": "test"}
+
+    def test_get_samplesheet_norunexists(self):
+        response = self.client.get('/api/v0/runs/1/sample_sheet')
+        assert response.status_code == 200
+        assert response.json == {'Summary': {}, 'Header': {},
+                                 'Reads': {}, 'Settings': {},
+                                 'DataCols': [], 'Data': []} 
+
+    @mock_s3
+    def test_get_samplesheet_runexists_nosamplesheet(self):
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
+                            run_number='1', flowcell_id='000000001',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        db.session.commit()
+        boto3.resources['s3'].create_bucket(Bucket='somebucket')
+
+        response = self.client.get('/api/v0/runs/1/sample_sheet')
+        assert response.status_code == 200
+        assert response.json == {'Summary': {
+            'experiment_name': 'PHIX3 test',
+            'flowcell_id': '000000001',
+            'id': 1,
+            'machine_id': 'M00123',
+            'run_date': '2019-01-10',
+            'run_number': '1',
+            's3_run_folder_path': 's3://somebucket/PHIX3_test'
+        },
+                                 'Header': {},
+                                 'Reads': {},
+                                 'Settings': {},
+                                 'DataCols': [],
+                                 'Data': []}
+
+    @mock_s3
+    def test_get_samplesheet(self):
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
+                            run_number='1', flowcell_id='000000001',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        db.session.commit()
+        boto3.resources['s3'].create_bucket(Bucket='somebucket')
+        boto3.clients['s3'].upload_file(Filename="test_data/SampleSheet.csv",
+                                        Bucket='somebucket',
+                                        Key="/PHIX3_test/SampleSheet.csv")
+        # Test
+        response = self.client.get('/api/v0/runs/1/sample_sheet')
+        # Check
+        assert response.status_code == 200
+        assert response.json == {'Summary': {'experiment_name': 'PHIX3 test',
+                                             'flowcell_id': '000000001',
+                                             'id': 1,
+                                             'machine_id': 'M00123',
+                                             'run_date': '2019-01-10',
+                                             'run_number': '1',
+                                             's3_run_folder_path': 's3://somebucket/PHIX3_test'},
+                                 'Header': {'Application': 'FASTQ Only',
+                                            'Assay': 'someassay',
+                                            'Chemistry': 'Amplicon',
+                                            'Date': '1/8/2018',
+                                            'Description': 'PHIX3 test',
+                                            'Experiment Name': 'PHIX3 test',
+                                            'IEMFileVersion': '4',
+                                            'Investigator Name': 'John',
+                                            'Workflow': 'GenerateFASTQ'},
+                                 'Reads': [151, 151],
+                                 'Settings': {'Adapter': 'CTGTCTCTTATACACATCT',
+                                              'ReverseComplement': '0'},
+                                 'DataCols': ['Sample_ID', 'Sample_Name', 'Sample_Plate',
+                                              'Sample_Well', 'I7_Index_ID', 'index', 'I5_Index_ID',
+                                              'index2', 'Sample_Project', 'Description'],
+                                 'Data': [{'Description': '',
+                                           'I5_Index_ID': 'S502-A',
+                                           'I7_Index_ID': 'N701-A',
+                                           'Sample_ID': 'sample1',
+                                           'Sample_Name': 'sample1',
+                                           'Sample_Plate': '',
+                                           'Sample_Project': 'P-00000000-0001',
+                                           'Sample_Well': '',
+                                           'index': 'TAAGGCGA',
+                                           'index2': 'CTCTCTAT'}]
+                                }
 
 if __name__ == '__main__':
     unittest.main()

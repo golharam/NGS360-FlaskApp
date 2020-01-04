@@ -23,13 +23,14 @@ GET    /api/v0/runs/[id]/metrics                               Retrieve demux me
 '''
 import datetime
 import json
-from io import BytesIO
 
 from flask import abort, jsonify, request, send_file, flash, current_app
 from flask_login import current_user
 from flask_restplus import Namespace, Resource
 
-from sample_sheet import SampleSheet
+# We need to do this rename or else SampleSheet inferferes with the 
+# REST API Resource, SampleSheet
+from sample_sheet import SampleSheet as IlluminaSampleSheet
 
 from app import BOTO3 as boto3
 from app.models import SequencingRun
@@ -227,7 +228,7 @@ class SequencingRunMetrics(Resource):
 
 @NS.route("/<sequencing_run_id>/sample_sheet")
 class SampleSheet(Resource):
-    def get(sequencing_run_id):
+    def get(self, sequencing_run_id):
         ss_json = {'Summary': {}, 'Header': {},
                    'Reads': {}, 'Settings': {},
                    'DataCols': [], 'Data': []}
@@ -237,14 +238,15 @@ class SampleSheet(Resource):
             sample_sheet_path = "%s/SampleSheet.csv" % run.s3_run_folder_path
             bucket, key = find_bucket_key(sample_sheet_path)
             if access(bucket, key):
-                ss = SampleSheet(sample_sheet_path)
-                ss = json.loads(ss.to_json())
+                ss = IlluminaSampleSheet(sample_sheet_path)
+                ss = ss.to_json()
+                ss = json.loads(ss)
                 ss_json['Header'] = ss['Header']
                 ss_json['Reads'] = ss['Reads']
                 ss_json['Settings'] = ss['Settings']
                 ss_json['DataCols'] = list(ss['Data'][0].keys())
                 ss_json['Data'] = ss['Data']
-        return jsonify(ss_json)
+        return ss_json
 
 @NS.route("/<sequencing_run_id>/samples")
 class Samples(Resource):
