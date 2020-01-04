@@ -1,7 +1,8 @@
 coverage
+flask_testing
+mock
 pytest
 pytest-cov
 pylint
-testfixtures
-flask_testing
 selenium
+testfixtures

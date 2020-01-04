@@ -216,14 +216,14 @@ class SequencingRunMetrics(Resource):
     def get(self, sequencing_run_id):
         run = SequencingRun.query.get(sequencing_run_id)
         if not run:
-            return '{"Status": "error", "Message": "Run not found"}', 404
-        s3StatsJsonFile = "%s/Stats/Stats.json" % run.s3_run_folder_path
-        bucket, key = find_bucket_key(s3StatsJsonFile)
-        if access(bucket, key) == False:
-            return '{"Status": "error", "Message": "%s not found"}' % s3StatsJsonFile, 404
-        data = s3.get_object(Bucket=bucket, Key=key)
+            return {"Status": "error", "Message": "Run not found"}, 404
+        s3_stats_json_file = "%s/Stats/Stats.json" % run.s3_run_folder_path
+        bucket, key = find_bucket_key(s3_stats_json_file)
+        if not access(bucket, key):
+            return {"Status": "error", "Message": "%s not found" % s3_stats_json_file}, 404
+        data = boto3.clients['s3'].get_object(Bucket=bucket, Key=key)
         json_stats = json.loads(data['Body'].read())
-        return jsonify(json_stats)
+        return json_stats
 
 @NS.route("/<sequencing_run_id>/sample_sheet")
 class SampleSheet(Resource):
