@@ -1,0 +1,528 @@
+{% extends "layout.html" %}
+{% block title %} - {{projectid}}{% endblock %}
+
+{% block body %}
+<div style="display: none" id="hideAll">&nbsp;</div>
+<div class="row">
+  <div class="col-xs-2"></div>
+  <div class="col-xs-8">
+      <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+
+        <div class="panel panel-default projectInfo">
+            <div class="panel-heading" role="tab" id="headingOne">
+                <h4 class="panel-title" role="button" data-toggle="collapse" href="#collapseProjectInfo" aria-expanded="true" aria-controls="collapseProjectInfo">
+                    <a>
+                        <p style="margin: 0; word-break: break-all" class="projectname">Loading project details...</p>
+                    </a>
+                </h4>
+            </div>
+            <div id="collapseProjectInfo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+                    <div class="detailsList grid">
+                        <div class="row">
+                            <div class="projectid detail col-sm-4">
+                                <p style="font-weight: bold">Project ID</p>
+                                <p id="projectid">{{projectid}}</p>
+                            </div>
+                            {% if xpress_project_id == -1 %}
+                            <div class="xpress_project_id detail col-sm-4">
+                                <p style="font-weight: bold">Xpress</p>
+                                <p id="xpress_project_id">
+                                    <span class="label label-info">Submitted</span>
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="businessowner detail col-sm-4">
+                                <p style="font-weight: bold">Business Owner</p>
+                                <p id="businessowner"></p>
+                            </div>
+                            <div class="dataowner detail col-sm-4">
+                                <p style="font-weight: bold">Data Owner</p>
+                                <p id="dataowner"></p>
+                            </div>
+                            <div class="department detail col-sm-4">
+                                <p style="font-weight: bold">Department</p>
+                                <p id="department"></p>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="experimenttype detail col-sm-4">
+                                <p style="font-weight: bold">Experiment Type</p>
+                                <p id="experimenttype"></p>
+                            </div>
+                            <div class="genomebuild detail col-sm-4">
+                                <p style="font-weight: bold">Genome Build</p>
+                                <p id="genomebuild"></p>
+                            </div>
+                            <div class="racode detail col-sm-4">
+                                <p style="font-weight: bold">RACode</p>
+                                <p id="racode"></p>
+                            </div>
+                        </div>
+                    </div>
+                    </p>                
+                </div>
+            </div>
+        </div>
+
+        {% if basespace_project %}
+        <div class="panel panel-default basespaceInfo">
+            <div class="panel-heading" role="tab" id="headingTwo">
+                <h4 class="panel-title">
+                    <a class="collapsed" role="button" data-toggle="collapse" href="#collapseBaseSpace" aria-expanded="false" aria-controls="collapseBaseSpace">
+                        BaseSpace
+                    </a>
+                </h4>
+            </div>
+            <div id="collapseBaseSpace" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingTwo">
+                <div class="panel-body">
+                    <p>
+                    <div>
+                        <button type="button" class="btn btn-xs btn-success" onclick="confirmCopyBaseSpaceFastQFilesToS3(this)" id="{{projectid}}">Copy Samples to S3</button>
+                    </div>
+                    <br />
+                    <table id="basespace_sampletable" class="table table-striped" style="width: 100%">
+                        <thead>
+                        <tr>
+                            <th>Sample</th>
+                        </tr>
+                        </thead>
+                    </table>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="panel panel-default sevenbridgesInfo">
+            <div class="panel-heading" role="tab" id="headingThree">
+                <h4 class="panel-title">
+                    <a class="collapsed" role="button" data-toggle="collapse" href="#collapseSevenBridges" aria-expanded="false" aria-controls="collapseSevenBridges">
+                        SevenBridges
+                    </a>
+                </h4>
+            </div>
+            <div id="collapseSevenBridges" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingThree">
+                <div class="panel-body">
+
+                    <p>
+                    <button type="button" class="btn btn-xs btn-success" id="{{projectid}}" onclick="confirmCreateSBProject()">Create Project</button>
+                    <select id="projectType">
+                        <option disabled selected>-- Select Project Type --</option>
+                        <option value="CRISPR">CRISPR</option>
+                        <option value="MDT">MDT</option>
+                        <option value="RNA-Seq">RNA-Seq</option>
+                        <option value="WES">WES</option>
+                    </select>
+                    </p>
+
+                    <p>
+                    <button type="button" class="btn btn-xs btn-success" id="{{projectid}}" onclick="confirmExportResults()">Export Results</button>
+                    <select id="reference">
+                        <option disabled selected>-- Select Project Type / Reference --</option>
+                        <option value="CRISPR">CRISPR</option>
+                        <option value="GRCh37ERCC-ensembl75">RNA-Seq: GRCh37ERCC-ensembl75</option>
+                        <option value="GRCh38ERCC-ensembl91">RNA-Seq: GRCh38ERCC-ensembl91</option>
+                        <option value="GRCm38ERCC-ensembl91">RNA-Seq: GRCm38ERCC-ensembl91</option>
+                        <option value="rn6ERCC-ensembl82">RNA-Seq: rn6ERCC-ensembl82</option>
+                        <option value="Rnor6.0ERCC-ensembl89">RNA-Seq: Rnor6.0ERCC-ensembl89</option>
+                        <option value="MacFas5.0ERCC_LILRA1-ensembl91">RNA-Seq: MacFas5.0ERCC_LILRA1-ensembl91</option>
+                        <option value="hg19">WES: hg19</option>
+                        <option value="hg38">WES: hg38</option>
+                    </select>
+                    </p>
+
+                    <!-- 
+                    <div class="fileLink" style="display: inline-block;">
+                        {% if wes_qc_report %}
+                        <div>
+                            <img src="/static/images/html-link.svg" alt="" style="height: 14px;">
+                            <a href="{{wes_qc_report}}">WES QC Report</a>
+                        </div>
+                        {% endif %}
+                        {% if rnaseq_qc_report %}
+                        <div>
+                            <img src="/static/images/html-link.svg" alt="" style="height: 14px;">
+                            <a href="{{rnaseq_qc_report}}">RNA-Seq QC Report</a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="projectlist" class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Analysis Type</th>
+                                <th>Reference Model</th>
+                                <th>Run Date</th>
+                                <th>Executed By</th>
+                            </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    -->
+                </div>
+            </div>
+        </div>
+
+        {% if rnaseq_qc_report %}
+        <div class="panel panel-default rnaseqqcInfo">
+            <div class="panel-heading active" role="tab">
+                <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" href="#collapseRNASeqQC" aria-expanded="true" aria-controls="collapseRNASeqQC">
+                        <p style="margin: 0">RNA-Seq QC Report</p>
+                    </a>
+                </h4>
+            </div>
+            <div id="collapseRNASeqQC" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+                    <div class="detailsList grid" style="height: 500px">
+                        <iframe src="{{ rnaseq_qc_report }}" frameborder="0"></iframe>
+                    </div>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if wes_qc_report %}
+        <div class="panel panel-default wesqcInfo">
+            <div class="panel-heading active" role="tab">
+                <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" href="#collapseWESQC" aria-expanded="true" aria-controls="collapseWESQC">
+                        <p style="margin: 0">WES QC Report</p>
+                    </a>
+                </h4>
+            </div>
+            <div id="collapseWESQC" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+                    <div class="detailsList grid">
+                        <iframe src="{{ wes_qc_report }}" frameborder="0"></iframe>
+                    </div>
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if xpress_project_id > -1 %}
+        <div class="panel panel-default xpressInfo">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title" role="button" data-toggle="collapse" href="#collapseXpressInfo" aria-expanded="true" aria-controls="collapseXpressInfo">
+                    <a>
+                        <p style="margin: 0">Xpress</p>
+                    </a>
+                </h4>
+            </div>
+            <div id="collapseXpressInfo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+                    <div class="detailsList grid">
+                        <div class="row">
+                            <div class="projectid detail col-sm-4">
+                                <p style="font-weight: bold">Xpress ID</p>
+                                <p><a class="xpressid" href="http://xpress.pri.bms.com/CGI/project_summary.cgi?project={{xpress_project_id}}" target="_blank">{{xpress_project_id}}</a></p>
+                            </div>
+                            <div class="displayName detail col-sm-8">
+                                <p style="font-weight: bold">Project Name</p>
+                                <p id="displayName" style="word-break: break-all"></p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="category detail col-sm-4">
+                                <p style="font-weight: bold">Category</p>
+                                <p id="category"></p>
+                            </div>
+                            <div class="principalInvestigator detail col-sm-4">
+                                <p style="font-weight: bold">Principal Investigator</p>
+                                <p id="principalInvestigator"></p>
+                            </div>
+                            <div class="principalAnalyst detail col-sm-4">
+                                <p style="font-weight: bold">Principal Analyst</p>
+                                <p id="principalAnalyst"></p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="designs detail col-sm-4">
+                                <p style="font-weight: bold">Designs</p>
+                                <p id="designs"></p>
+                            </div>
+                            <div class="samples detail col-sm-4">
+                                <p style="font-weight: bold">Number of Samples</p>
+                                <p id="samples"></p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+  </div>
+
+  <div class="col-xs-2">
+    {% if runs %}
+      <div class="panel panel-default" style="position:absolute;margin-right:20px">
+        <div class="panel-heading" style="border-bottom: 1px solid #dddddd;">
+          <h4 class="panel-title">
+            <a class="collapsed" style="--content:none">
+               <p style="margin: 0">Illumina Runs</p>
+            </a>
+          </h4>
+        </div>
+        <div class="panel-body" style="max-height:35em;overflow:auto;resize: vertical;">
+          <ol class="list-unstyled mb-0">
+            {% for run in runs %}
+              <li><a href="/illumina_run?runid={{run['id']}}">{{run['barcode']}}</a></li>
+            {% endfor %}
+          </ol>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    $('#hideAll').css('display', 'block');
+
+    $(document).ready( function () {
+
+        $('.panel-heading').click(function () {
+            var $this = $(this);
+
+            if ($this.hasClass("active")) {
+                $this.removeClass("active");
+            } else {
+                $this.addClass("active");
+            }
+        });
+
+        $.get("/projectregistry_projectdetails/{{projectid}}", function (data) {
+
+            $('.projectname').text(data[0].projectname);
+            $('#businessowner').text( data[0].businessowner);
+            $('#dataowner').text( data[0].dataowner);
+            $('#department').text( data[0].department);
+            $('#experimenttype').text( data[0].experimenttype);
+            $('#genomebuild').text(data[0].genomebuild);
+            $('#racode').text(data[0].racode);
+
+            $('#hideAll').css('display', 'none')
+        });
+
+        {% if xpress_project_id > -1 %}
+        $.get("/api/v0/xpress/{{xpress_project_id}}", function (data) {
+            $('.xpressid').text(JSON.parse(data).project.project_id);
+            $('.xpressid').prop('href', 'http://xpress.pri.bms.com/CGI/project_summary.cgi?project=' + JSON.parse(data).project.project_id);
+            $('#displayName').text( JSON.parse(data).project['display name']);
+            $('#category').text( JSON.parse(data).project.category);
+            $('#principalInvestigator').text( JSON.parse(data).project['principal investigator']);
+            $('#principalAnalyst').text( JSON.parse(data).project['principal analyst']);
+            $('#designs').text(JSON.parse(data).project.designs);
+            $('#samples').text(JSON.parse(data).project['number of samples']);
+        });
+        {% endif %}
+
+        {% if basespace_project %}
+        var basespaceSampleTable = $('#basespace_sampletable').DataTable({
+            ajax: {
+                url: "/api/v0/basespace/{{basespace_project}}/samples",
+                dataSrc: ''
+            },
+            columns: [
+                { data: "Name" }
+            ],
+            deferRender: true,
+            searching: true,
+            paging: true,
+
+        });
+        {% endif %}
+
+        $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
+        /*
+        var table = $('#projectlist').DataTable({
+            ajax: {
+                url: "/projects/{{projectid}}/analysisResults",
+                dataSrc: function (json) {
+                    var newData = json[Object.keys(json)];
+                    var dataKey = Object.keys(json);
+                    if (newData != null) {
+                        for(var i=0; i<newData.length; i++){
+                            newData[i].analysisType = dataKey[0];
+                            if (newData[i].ExecutedBy != null) {
+                                newData[i].ExecutedBy = newData[i].ExecutedBy.replace("bristol-myers-squibb/", "")
+                            }
+                        }
+                    } else {
+                        newData = [ { analysisType: '-',
+                                      ReferenceModel: "-",
+                                      RunDate: '-',
+                                      ExecutedBy: '-',
+                                      Status: '-'
+                                  } ]
+                    }
+                    return newData;
+                }
+            },
+            "columns": [
+                { sortable: false, "render": function(data, type, full, meta) {
+                    if (full.Status === "COMPLETED") {
+                        return '<span class="label label-success">'+full.Status+'</span>';
+                    } else if (full.Status === "FAILED") {
+                        return '<span class="label label-danger">'+full.Status+'</span>';
+                    } else if (full.Status === "-") {
+                        return '-';
+                    } else {
+                        return '<span class="label label-info">'+full.Status+'</span>';
+                    }
+                  }
+                },
+                { "data": 'analysisType'},
+                { "data": 'ReferenceModel' },
+                { "data": 'RunDate' },
+                { "data": 'ExecutedBy' }
+            ],
+            colReorder: true,
+            deferRender: true,
+            paging: false,
+            searching:  false
+        });
+        */
+    });
+
+
+    /*$('.btn').on('click', function() {
+        var $this = $(this);
+        $this.button('loading');
+        setTimeout(function() {
+            $this.button('reset');
+        }, 1000);
+    });*/
+
+    // Create SB Project Code
+    function confirmCreateSBProject() {
+        projectid = "{{projectid}}";
+        projectType = $("#projectType").val();
+        if (projectType == null) {
+            alert("Please select a project type.");
+            return;
+        }
+        BootstrapDialog.confirm({
+            title: projectid,
+            message: "Create/Refresh SevenBridges " + projectType + " project and import (new) fastq files?",
+            callback: function(result) {
+                if (result) {
+                    copyProjectToSevenBridges(projectid, projectType);
+                }
+            }
+        });
+    }
+  
+    function copyProjectToSevenBridges(projectid, projectType) {
+        /* projectType is {MDT, WES, RNA-Seq}
+         */
+        jobStatusDialog = showJobStatusDialog("Creating " + projectid + " " + projectType + " in SevenBridges", null, null);
+        requestUrl = "/api/v0/" + projectid + "/createSevenBridgesProject/" + projectType;
+        $.get(requestUrl, function(data) {  
+            if (('status' in data) && (data['status'] == 'ERROR')) {
+                alert(data['log'])
+            } else {
+                jobStatusDialog.setData('jobName', data['jobName']);
+                jobStatusDialog.setData('jobId', data['jobId']);
+            }
+        }).fail(function(){
+            jobStatusDialog.setMessage('Unable to connect to server.  Please refresh the page and try again.');
+        });
+    }
+
+    // Export SB Results Code
+    function confirmExportResults() {
+        var projectid = "{{projectid}}"
+        var reference = $("#reference").val();
+        if (reference == null) {
+            alert("Please select a reference model.");
+            return;
+        }
+        var projectType = $("#reference option:selected").text();
+        if (projectType.startsWith("RNA-Seq")) {
+            projectType = "RNA-Seq";
+        } else if (projectType.startsWith("WES")) {
+            projectType = "WES";
+        } else {
+            projectType = "CRISPR"
+        }
+        BootstrapDialog.confirm({
+            title: projectid,
+            message: "Export " + projectType + " results from SevenBridges to S3?",
+            callback: function(result) {
+                if (result) {
+                    exportResultsToS3(projectid, projectType, reference);
+                }
+            }
+        });
+    }
+
+    function exportResultsToS3(projectid, projectType, reference) {
+        jobStatusDialog = showJobStatusDialog("Exporting SevenBridges results to S3", null, null)
+        url = "/api/v0/projects/" + projectid + "/copyAnalysisResults";
+        data = {"analysistype": projectType, "reference": reference, "username": userid};
+        $.ajax({type: "POST",
+                url: url,
+                data: JSON.stringify(data),
+                contentType: "application/json",
+                success: function(data) {
+                    if (('status' in data) && (data['status'] == 'ERROR')) {
+                        alert(data['log'])
+                    } else {
+                        jobStatusDialog.setData('jobName', data['jobName']);
+                        jobStatusDialog.setData('jobId', data['jobId']);
+                    }
+                },
+                failure: function(errMsg) {
+                    jobStatusDialog.setMessage(errMsg);
+                }
+        });
+    }
+ 
+    function confirmCopyBaseSpaceFastQFilesToS3(button) {
+        var projectid = $(button).attr('id');
+        if (projectid.startsWith("P-")) {
+            BootstrapDialog.confirm({
+                title: projectid,
+                message: "Copy fastq files from BaseSpace to S3?",
+                callback: function(result) {
+                    if (result) {
+                        copyBaseSpaceFastQFilesToS3(projectid);
+                    }
+                }
+            });
+        } else {
+            alert("Project Name must be P-########-####");
+        }
+    }
+
+    function copyBaseSpaceFastQFilesToS3(projectid) {
+        jobStatusDialog = showJobStatusDialog("Copying fastq files to S3", null, null)
+        $.get("/copyBaseSpaceProjectToS3/" + projectid, function(data) {
+            if (('status' in data) && (data['status'] == 'ERROR')) {
+                alert(data['log'])
+            } else {
+                jobStatusDialog.setData('jobName', data['jobName']);
+                jobStatusDialog.setData('jobId', data['jobId']);
+            }
+        }).fail(function () {
+            jobStatusDialog.setMessage('Unable to connect to server.  Please refresh the page and try again.');
+        });
+    }
+</script>
+{% endblock %}

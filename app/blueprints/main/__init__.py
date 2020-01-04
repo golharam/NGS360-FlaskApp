@@ -62,6 +62,12 @@ def show_projects():
     ''' Show Projects page '''
     return render_template('main/projects.html')
 
+@BP.route("/project/<projectid>")
+@login_required
+def show_project(projectid):
+    ''' Show Project page '''
+    return render_template('main/project.html')
+
 # TODO: Move this to a REST Endpoint
 @BP.route("/projectregistry_json")
 def projectregistry_json():

@@ -2,6 +2,7 @@
 Front-End tests
 https://scotch.io/tutorials/test-a-flask-app-with-selenium-webdriver-part-1
 '''
+import datetime
 import unittest
 import urllib
 from flask_testing import LiveServerTestCase
@@ -12,7 +13,6 @@ from selenium.webdriver.common.keys import Keys
 from config import TestConfig
 from app import create_app, DB as db
 from app.models import User, SequencingRun
-
 
 class FrontEndTests(LiveServerTestCase):
     def create_app(self):
@@ -74,7 +74,8 @@ class FrontEndTests(LiveServerTestCase):
         self.check_page(url)
 
     def test_illuminarun_page(self):
-        run = SequencingRun(id=1, run_date='2018-01-10', machine_id='M00123',
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
                             run_number='1', flowcell_id='000000001',
                             experiment_name='PHIX3 test',
                             s3_run_folder_path='s3://somebucket/PHIX3_test')
@@ -97,6 +98,9 @@ class FrontEndTests(LiveServerTestCase):
     def test_jobs_page(self):
         url = "%s/projects" % self.get_server_url()
         self.check_page(url)
+
+    def test_job_log_page(self):
+        self.skipTest("Not yet implemented")
 
 if __name__ == '__main__':
     unittest.main()
