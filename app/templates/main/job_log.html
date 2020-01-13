@@ -1,0 +1,122 @@
+{% extends "layout.html" %}
+{% block title %} - {{jobName}}{% endblock %}
+
+{% block body %}
+
+<div class="wrapper center-block">
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+        
+        <div class="panel panel-default jobInfo">
+
+            <div class="panel-heading" role="tab" id="headingOne">
+                <h4 class="panel-title" role="button" data-toggle="collapse" href="#collapseJobInfo" aria-expanded="true" aria-controls="collapseJobInfo">
+                    <a>
+                        <p style="margin: 0; word-break: break-all" class="jobname">{{jobName}}</p>
+                    </a>
+                </h4>
+            </div>
+
+            <div id="collapseJobInfo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+                    <div class="detailsList grid">
+                        <div class="row">
+                            <div class="jobid detail col-sm-4">
+                                <p style="font-weight: bold">Job ID</p>
+                                <p id="jobid">{{jobId}}</p>
+                            </div>
+                            <div class="submitted_on col-sm-4">
+                                <p style="font-weight: bold">Submitted On</p>
+                                <p id="submitted_on">{{submittedOn}}</p>
+                            </div>
+                            <div class="jobstate col-sm-4">
+                                <p style="font-weight: bold">Job State</p>
+                                <p id="jobstatus">Getting status...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="panel panel-default jobLog">
+
+            <div class="panel-heading" role="tab" id="headingTwo">
+                <h4 class="panel-title" role="button" data-toggle="collapse" href="#collapseJobLog" aria-expanded="true" aria-controls="collapseJobLog">
+                    <a>
+                        <p style="margin: 0; word-break: break-all" class="joblog">Job Log</p>
+                    </a>
+                </h4>
+            </div>
+
+            <div id="collapseJobLog" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingTwo">
+                <div class="panel-body">
+                    <div class="log" style="overflow-y: auto; height:400px;" id="logcontents">Fetching log...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+    $('#hideAll').css('display', 'block');
+
+    var jobPoller;
+    function updateJobStatus(status) {
+        if ($("#jobstatus").text().startsWith(status) == false) {
+            $("#jobstatus").text(status);
+
+            if ((status != "FAILED") && (status != "SUCCEEDED") && (status != "ERROR")) {
+                $("#jobstatus").append('...<img src="/static/images/spinner.svg">');
+            }
+            $("#jobstatus").effect("highlight", {}, 3000);
+        }
+    }
+
+    function updateJobLog() {
+        console.log("updateJobLog::fetching job log")
+        $.get("/api/v0/jobs/{{jobId}}/log", function (data) {
+            console.log("updateJobLog::got job log")
+            $('#logcontents').text('');
+            for (var i = 0; i < data.length; ++i) {
+                $('#logcontents').append(i, ": ", data[i], "<br/>");
+            }
+        });
+    }
+
+    function pollJob() {
+        $.get("/api/v0/jobs/{{jobId}}", function (data) {
+            updateJobStatus(data['status'])
+            if ((data['status'] != "FAILED") && (data['status'] != "SUCCEEDED") && (data['status'] != "ERROR")) {
+                jobLogPoller = setTimeout(pollJob, 10000);
+            } else {
+                clearTimeout(pollJob);
+            }
+        });
+        updateJobLog();
+    }
+
+    $(document).ready( function () {
+        console.log("job_log::ready()")
+        $('.panel-heading').click(function () {
+            var $this = $(this);
+
+            if ($this.hasClass("active")) {
+                $this.removeClass("active");
+            } else {
+                $this.addClass("active");
+            }
+        });
+
+        $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
+
+        // Initiate poller to get job status and jog
+        // jobPoller = setTimeout(pollJob, 10000);
+        pollJob();
+    });
+</script>
+{% endblock %}
+

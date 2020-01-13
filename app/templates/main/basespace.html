@@ -56,23 +56,6 @@
                     ],
                     "order": [[2, 'asc']]
                 });
-                /*
-                var projectTable = $('#projectlist').DataTable({
-                    ajax: {
-                        url: "/basespace_projects",
-                        dataSrc: ''
-                    },
-                    "columns": [
-                        { sortable: false, "render": function(data, type, full, meta) {
-                            var project = full.Name;
-                            return '<button type="button" class="btn btn-xs btn-success" onclick="confirmCopyProjectToS3(this)" id="'+project+'">Copy</button>';
-                          }
-                        },
-                        { "data": "Name", "width": "75%" }
-                    ],
-                    "order": [[1, 'asc']]
-                });
-                */
         } );
         function confirmArchiveRunToS3(button) {
             var runName = button.id;
@@ -104,31 +87,5 @@
                 jobStatusDialog.setMessage('Unable to connect to server.  Please refresh the page and try again.');
             });
         }
-        /*
-        function confirmCopyProjectToS3(button) {
-            var projectid = button.id;
-			if (projectid.startsWith("P-")) {
-                BootstrapDialog.show({
-                    title: projectid,
-                    message: "This functionality is now available on the project page."
-                });
-		    } else {
-				alert("Project Name must be P-########-####");
-			}
-        }
-        function copyProjectToS3(projectid) {
-            $.get("/copyBaseSpaceProjectToS3/" + projectid, function(data) {
-                if (('status' in data) && (data['status'] == 'ERROR')) {
-                    alert(data['log'])
-                } else {
-                    jobName = data['jobName'];
-                    jobId = data['jobId'];
-                    showJobStatusDialog("Copying fastq files to S3", jobName, jobId);
-                }
-            }).fail(function () {
-                alert('Please close it and refresh the website.');
-            });
-        }
-        */
     </script>
 {% endblock %}

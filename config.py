@@ -38,7 +38,8 @@ class DefaultConfig:
     BCL2FASTQ_QUEUE = os.environ.get('BCL2FASTQ_QUEUE') or None
     SCRNASEQ_LAMBDA_FN = os.environ.get('SCRNASEQ_LAMBDA_FN') or None
 
-    BOTO3_SERVICES = ['batch', 'lambda', 'logs']
+    BOTO3_SERVICES = ['batch', 'lambda', 'logs', 's3']
+
     JOB_DEFINITION = os.environ.get('NGS_JOB') or None
     JOB_QUEUE = os.environ.get('NGS_JOB_QUEUE') or None
 
@@ -77,3 +78,9 @@ class TestConfig(DefaultConfig):
     # it means we may skip some functionality that needs to be
     # tested when a user is logged in.
     #LOGIN_DISABLED = True
+
+    # Assist to mock flask-boto3 so as to not read env profile
+    BOTO3_ACCESS_KEY = 'access'
+    BOTO3_SECRET_KEY = 'secret'
+    BOTO3_REGION = 'us-west-1'
+    #BOTO3_PROFILE = 'default'

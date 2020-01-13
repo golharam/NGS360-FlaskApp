@@ -23,13 +23,14 @@ GET    /api/v0/runs/[id]/metrics                               Retrieve demux me
 '''
 import datetime
 import json
-from io import BytesIO
 
 from flask import abort, jsonify, request, send_file, flash, current_app
 from flask_login import current_user
 from flask_restplus import Namespace, Resource
 
-from sample_sheet import SampleSheet
+# We need to do this rename or else SampleSheet inferferes with the 
+# REST API Resource, SampleSheet
+from sample_sheet import SampleSheet as IlluminaSampleSheet
 
 from app import BOTO3 as boto3
 from app.models import SequencingRun
@@ -42,7 +43,7 @@ def access(bucket, key):
     This function mimick os.access to check for a file
     key is full s3 path to file eg s3://mybucket/myfile.txt
     '''
-    paginator = s3.get_paginator('list_objects')
+    paginator = boto3.clients['s3'].get_paginator('list_objects')
     iterator = paginator.paginate(Bucket=bucket,
                                   Prefix=key, Delimiter='/')
     for responseData in iterator:
@@ -75,7 +76,7 @@ def find_bucket_key(s3path):
 
 @NS.route("")
 class Runs(Resource):
-    def get():
+    def get(self):
         if 'run_barcode' in request.args:
             barcode_items = request.args['run_barcode'].split("_")
             if len(barcode_items) != 4:
@@ -92,14 +93,13 @@ class Runs(Resource):
                                               SequencingRun.machine_id == machine_id,
                                               SequencingRun.run_number == run_number,
                                               SequencingRun.flowcell_id == flowcell_id)
-            if runs.count():
-                return jsonify({'run': runs[0].to_dict()}), 200
-            abort(404)
+            if runs.count() == 0:
+                abort(404)
         else:
             runs = SequencingRun.query.all()
-        return jsonify({'runs': [run.to_dict() for run in runs]}), 200
+        return {'runs': [run.to_dict() for run in runs]}
 
-    def post():
+    def post(self):
         # TODO: Secure with auth_tokens
         if not request.json:
             abort(400)
@@ -213,21 +213,21 @@ class DownloadFile(Resource):
 
 @NS.route("/<sequencing_run_id>/metrics")
 class SequencingRunMetrics(Resource):
-    def get(sequencing_run_id):
+    def get(self, sequencing_run_id):
         run = SequencingRun.query.get(sequencing_run_id)
         if not run:
-            return '{"Status": "error", "Message": "Run not found"}', 404
-        s3StatsJsonFile = "%s/Stats/Stats.json" % run.s3_run_folder_path
-        bucket, key = find_bucket_key(s3StatsJsonFile)
-        if access(bucket, key) == False:
-            return '{"Status": "error", "Message": "%s not found"}' % s3StatsJsonFile, 404
-        data = s3.get_object(Bucket=bucket, Key=key)
+            return {"Status": "error", "Message": "Run not found"}, 404
+        s3_stats_json_file = "%s/Stats/Stats.json" % run.s3_run_folder_path
+        bucket, key = find_bucket_key(s3_stats_json_file)
+        if not access(bucket, key):
+            return {"Status": "error", "Message": "%s not found" % s3_stats_json_file}, 404
+        data = boto3.clients['s3'].get_object(Bucket=bucket, Key=key)
         json_stats = json.loads(data['Body'].read())
-        return jsonify(json_stats)
+        return json_stats
 
 @NS.route("/<sequencing_run_id>/sample_sheet")
 class SampleSheet(Resource):
-    def get(sequencing_run_id):
+    def get(self, sequencing_run_id):
         ss_json = {'Summary': {}, 'Header': {},
                    'Reads': {}, 'Settings': {},
                    'DataCols': [], 'Data': []}
@@ -237,14 +237,15 @@ class SampleSheet(Resource):
             sample_sheet_path = "%s/SampleSheet.csv" % run.s3_run_folder_path
             bucket, key = find_bucket_key(sample_sheet_path)
             if access(bucket, key):
-                ss = SampleSheet(sample_sheet_path)
-                ss = json.loads(ss.to_json())
+                ss = IlluminaSampleSheet(sample_sheet_path)
+                ss = ss.to_json()
+                ss = json.loads(ss)
                 ss_json['Header'] = ss['Header']
                 ss_json['Reads'] = ss['Reads']
                 ss_json['Settings'] = ss['Settings']
                 ss_json['DataCols'] = list(ss['Data'][0].keys())
                 ss_json['Data'] = ss['Data']
-        return jsonify(ss_json)
+        return ss_json
 
 @NS.route("/<sequencing_run_id>/samples")
 class Samples(Resource):

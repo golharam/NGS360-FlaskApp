@@ -169,7 +169,7 @@ class SequencingRun(db.Model):
     def to_dict(self):
         data = {
             'id': self.id,
-            'run_date': self.run_date,
+            'run_date': self.run_date.strftime("%Y-%m-%d"),
             'machine_id': self.machine_id,
             'run_number': self.run_number,
             'flowcell_id': self.flowcell_id,

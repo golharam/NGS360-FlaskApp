@@ -3,7 +3,6 @@ BaseSpace interface to BaseSpace REST API, v1pre3
 
 Author: Ryan Golhar <ryan.golhar@bms.com>
 """
-
 from urllib.request import urlopen
 from urllib.error import HTTPError
 import json
@@ -28,18 +27,21 @@ class BaseSpace:
         self.base_url = '%s/%s' % (self.api_endpoint, self.api_endpoint_version)
         self.access_token = access_token
         self.userid = None
+        self.app = None
         if access_token:
             # This is needed because other calls rely on self.userid
             self.get_user_id()
 
     def init_app(self, app):
         ''' Mimicks the init_app for Flask apps '''
+        self.app = app
         if 'BASESPACE_TOKEN' in app.config:
             self.access_token = app.config['BASESPACE_TOKEN']
             self.get_user_id()
 
     def get_user_id(self):
         """ Return the current user's id """
+        self.app.logger.info("Attempting to deterimine userid...")
         url = '%s/users/current?access_token=%s' % (self.base_url, self.access_token)
         data = get_json(url)
         if data and 'Response' in data:
@@ -47,6 +49,7 @@ class BaseSpace:
             self.userid = response['Id']
         else:
             self.userid = None
+        self.app.logger.info("userid is %s", self.userid)
         return self.userid
 
     def get_runs(self):
@@ -74,15 +77,39 @@ class BaseSpace:
             offset += response['DisplayedCount']
         return retval
 
-'''
-    def getProjectID(self, projectName):
+    def get_projects(self):
+        """
+        Returns a list of project.  Assumes get_user_id was called during initialization.
+        """
+        offset = 0
+        ret_val = []
+        while True:
+            url = '%s/users/%s/projects?Limit=1024&Offset=%s&access_token=%s' % (self.base_url,
+                                                                                 self.userid,
+                                                                                 offset,
+                                                                                 self.access_token)
+            data = get_json(url)
+            if not data:
+                return ret_val
+            response = data['Response']
+
+            projects = response['Items']
+            for project in projects:
+                ret_val.append({'Name': project['Name'], 'Id': project['Id']})
+            if response['DisplayedCount'] + offset == response['TotalCount']:
+                break
+            offset += response['DisplayedCount']
+        return ret_val
+
+    def get_project_id(self, projectName):
         """ Return a project's id based on its name """
-        projects = self.getProjects()
+        projects = self.get_projects()
         # find the project with the request name
         for project in projects:
             if project['Name'] == projectName:
                 return project['Id']
         return None
+'''
 
     def getProjectSamples(self, projectid):
         """ Returns a list of samples for a BaseSpace projectid
@@ -101,37 +128,6 @@ class BaseSpace:
         for sample in samples:
             logger.debug(sample)
             retVal.append({'Name': sample['Name'], 'Id': sample['Id']})
-        return retVal
-
-    def getProjects(self):
-        """ Returns a list of project """
-        logger.debug("Retrieving projects")
-        if not self.userid:
-            self.getCurrentUser()
-        if not self.userid:
-            return None
-
-        offset = 0
-        retVal = []
-        while True:
-            url = '%s/users/%s/projects?Limit=1024&Offset=%s&access_token=%s' % (self.baseUrl,
-                                                                                 self.userid,
-                                                                                 offset,
-                                                                                 self.accessToken)
-            data = getJSON(url)
-            if not data:
-                logger.warn("Expected JSON response but got nothing.")
-                return retVal
-            response = data['Response']
-
-            projects = response['Items']
-            for project in projects:
-                logger.debug(project)
-                retVal.append({'Name': project['Name'], 'Id': project['Id']})
-            if response['DisplayedCount'] + offset == response['TotalCount']:
-                break
-            else:
-                offset += response['DisplayedCount']
         return retVal
 
     def getRun(self, runID):
