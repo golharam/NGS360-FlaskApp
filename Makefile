@@ -4,7 +4,7 @@ all: clean install test lint build
 
 clean:
 	find . -name __pycache__ -exec rm -rf {} \;
-	rm -rf *.pyc .coverage .pytest_cache/ htmlcov/ .venv/ .env
+	rm -rf *.pyc .coverage .pytest_cache/ htmlcov/ .venv/ .env test.db
 
 install: requirements.txt requirements-dev.txt
 	python3 -m venv .venv
