@@ -23,6 +23,33 @@ class RunsTests(TestCase):
         self.client = None
         self.app_context.pop()
 
+    def test_get_runs(self):
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
+                            run_number='1', flowcell_id='000000001',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        run_date = datetime.date(2019, 2, 15)
+        run = SequencingRun(id=2, run_date=run_date, machine_id='M00123',
+                            run_number='2', flowcell_id='A',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        db.session.commit()
+        # Get all runs
+        response = self.client.get('/api/v0/runs')
+        assert len(response.json['runs']) == 2
+        # Get a specific run
+        response = self.client.get('/api/v0/runs?run_barcode=190110_M00123_0001_000000001')
+        assert len(response.json['runs']) == 1
+        # Assert invalid barcode is caught
+        response = self.client.get('/api/v0/runs?run_barcode=1')
+        assert response.status_code == 400
+        # Fetch an unknown run
+        response = self.client.get('/api/v0/runs?run_barcode=190110_M00124_0001_000000001')
+        assert response.status_code == 404
+
     @mock_s3
     def test_get_run_metrics_notexist(self):
         response = self.client.get('/api/v0/runs/1/metrics')

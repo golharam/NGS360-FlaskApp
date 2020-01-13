@@ -76,7 +76,7 @@ def find_bucket_key(s3path):
 
 @NS.route("")
 class Runs(Resource):
-    def get():
+    def get(self):
         if 'run_barcode' in request.args:
             barcode_items = request.args['run_barcode'].split("_")
             if len(barcode_items) != 4:
@@ -93,14 +93,13 @@ class Runs(Resource):
                                               SequencingRun.machine_id == machine_id,
                                               SequencingRun.run_number == run_number,
                                               SequencingRun.flowcell_id == flowcell_id)
-            if runs.count():
-                return jsonify({'run': runs[0].to_dict()}), 200
-            abort(404)
+            if runs.count() == 0:
+                abort(404)
         else:
             runs = SequencingRun.query.all()
-        return jsonify({'runs': [run.to_dict() for run in runs]}), 200
+        return {'runs': [run.to_dict() for run in runs]}
 
-    def post():
+    def post(self):
         # TODO: Secure with auth_tokens
         if not request.json:
             abort(400)
