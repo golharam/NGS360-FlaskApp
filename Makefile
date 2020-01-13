@@ -1,3 +1,4 @@
+NAME=ngs360-flask
 .PHONY: clean install build test lint browsertests run shell
 
 all: clean install test lint build
