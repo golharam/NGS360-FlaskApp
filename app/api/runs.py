@@ -24,6 +24,8 @@ GET    /api/v0/runs/[id]/metrics                               Retrieve demux me
 import datetime
 import json
 
+import botocore
+
 from flask import abort, jsonify, request, send_file, flash, current_app
 from flask_login import current_user
 from flask_restplus import Namespace, Resource
@@ -43,19 +45,22 @@ def access(bucket, key):
     This function mimick os.access to check for a file
     key is full s3 path to file eg s3://mybucket/myfile.txt
     '''
-    paginator = boto3.clients['s3'].get_paginator('list_objects')
-    iterator = paginator.paginate(Bucket=bucket,
-                                  Prefix=key, Delimiter='/')
-    for responseData in iterator:
-        #common_prefixes = responseData.get('CommonPrefixes', [])
-        contents = responseData.get('Contents', [])
-        #if not contents: # and not common_prefixes:
-            #self._empty_result = True
-        #    return
-        #for common_prefix in common_prefixes:
-            # is Dir, should never occur
-        for content in contents:
-            return key == content['Key']
+    try:
+        paginator = boto3.clients['s3'].get_paginator('list_objects')
+        iterator = paginator.paginate(Bucket=bucket,
+                                    Prefix=key, Delimiter='/')
+        for responseData in iterator:
+            #common_prefixes = responseData.get('CommonPrefixes', [])
+            contents = responseData.get('Contents', [])
+            #if not contents: # and not common_prefixes:
+                #self._empty_result = True
+            #    return
+            #for common_prefix in common_prefixes:
+                # is Dir, should never occur
+            for content in contents:
+                return key == content['Key']
+    except botocore.exceptions.ClientError:
+        pass
     return False
 
 def find_bucket_key(s3path):
@@ -236,15 +241,16 @@ class SampleSheet(Resource):
             ss_json['Summary'] = run.to_dict()
             sample_sheet_path = "%s/SampleSheet.csv" % run.s3_run_folder_path
             bucket, key = find_bucket_key(sample_sheet_path)
-            if access(bucket, key):
-                ss = IlluminaSampleSheet(sample_sheet_path)
-                ss = ss.to_json()
-                ss = json.loads(ss)
-                ss_json['Header'] = ss['Header']
-                ss_json['Reads'] = ss['Reads']
-                ss_json['Settings'] = ss['Settings']
-                ss_json['DataCols'] = list(ss['Data'][0].keys())
-                ss_json['Data'] = ss['Data']
+            if not access(bucket, key):
+                return {"Status": "error", "Message": "%s not found" % sample_sheet_path}, 404
+            ss = IlluminaSampleSheet(sample_sheet_path)
+            ss = ss.to_json()
+            ss = json.loads(ss)
+            ss_json['Header'] = ss['Header']
+            ss_json['Reads'] = ss['Reads']
+            ss_json['Settings'] = ss['Settings']
+            ss_json['DataCols'] = list(ss['Data'][0].keys())
+            ss_json['Data'] = ss['Data']
         return ss_json
 
 @NS.route("/<sequencing_run_id>/samples")
