@@ -111,21 +111,7 @@ class RunsTests(TestCase):
         boto3.resources['s3'].create_bucket(Bucket='somebucket')
 
         response = self.client.get('/api/v0/runs/1/sample_sheet')
-        assert response.status_code == 200
-        assert response.json == {'Summary': {
-            'experiment_name': 'PHIX3 test',
-            'flowcell_id': '000000001',
-            'id': 1,
-            'machine_id': 'M00123',
-            'run_date': '2019-01-10',
-            'run_number': '1',
-            's3_run_folder_path': 's3://somebucket/PHIX3_test'
-        },
-                                 'Header': {},
-                                 'Reads': {},
-                                 'Settings': {},
-                                 'DataCols': [],
-                                 'Data': []}
+        assert response.status_code == 404
 
     @mock_s3
     def test_get_samplesheet(self):

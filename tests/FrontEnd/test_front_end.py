@@ -74,7 +74,7 @@ class FrontEndTests(LiveServerTestCase):
         url = "%s/illumina_runs" % self.get_server_url()
         self.check_page(url)
 
-    def Xtest_illuminarun_page(self):
+    def test_illuminarun_page(self):
         run_date = datetime.date(2019, 1, 10)
         run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
                             run_number='1', flowcell_id='000000001',
