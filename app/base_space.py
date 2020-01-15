@@ -101,12 +101,12 @@ class BaseSpace:
             offset += response['DisplayedCount']
         return ret_val
 
-    def get_project_id(self, projectName):
+    def get_project_id(self, project_name):
         """ Return a project's id based on its name """
         projects = self.get_projects()
         # find the project with the request name
         for project in projects:
-            if project['Name'] == projectName:
+            if project['Name'] == project_name:
                 return project['Id']
         return None
 '''
