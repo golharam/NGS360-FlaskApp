@@ -35,7 +35,7 @@ class BaseSpace:
     def init_app(self, app):
         ''' Mimicks the init_app for Flask apps '''
         self.app = app
-        if 'BASESPACE_TOKEN' in app.config:
+        if 'BASESPACE_TOKEN' in app.config and app.config['BASESPACE_TOKEN']:
             self.access_token = app.config['BASESPACE_TOKEN']
             self.get_user_id()
 
