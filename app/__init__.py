@@ -15,7 +15,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 from config import DefaultConfig
 from app.BaseSpace import BaseSpace
-from app.SevenBridges import SevenBridges
+from app.seven_bridges import SevenBridges
 
 DB = SQLAlchemy()
 MIGRATE = Migrate()
