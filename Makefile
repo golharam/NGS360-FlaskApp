@@ -15,7 +15,7 @@ build:
 	docker build -t $(NAME) .
 
 test:
-	rm -rf .coverage htmlcov/
+	rm -rf test.db .coverage htmlcov/
 	source .venv/bin/activate && python -m pytest -vv --cov app/ --ignore=tests/FrontEnd && coverage html
 
 lint:
