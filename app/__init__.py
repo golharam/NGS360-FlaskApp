@@ -14,7 +14,7 @@ from flask_restplus import Api
 from flask_sqlalchemy import SQLAlchemy
 
 from config import DefaultConfig
-from app.BaseSpace import BaseSpace
+from app.base_space import BaseSpace
 from app.seven_bridges import SevenBridges
 
 DB = SQLAlchemy()
