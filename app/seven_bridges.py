@@ -1,3 +1,6 @@
+'''
+Interface class to SevenBridges
+'''
 import sevenbridges as sbg
 from sevenbridges.http.error_handlers import rate_limit_sleeper, \
                                              maintenance_sleeper, \

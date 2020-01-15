@@ -4,7 +4,6 @@ Interface to Project Registry
 from urllib.request import urlopen
 from urllib.error import URLError
 import json
-from flask import current_app, abort
 
 def get_projects(project_registry_url, fields=None):
     '''

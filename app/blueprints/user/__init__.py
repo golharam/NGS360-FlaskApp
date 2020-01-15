@@ -1,3 +1,7 @@
+'''
+Blueprint for User associated routes
+'''
+
 from flask import Blueprint, render_template, flash, redirect, url_for, current_app, request
 from flask_login import current_user, login_user, logout_user
 from werkzeug.urls import url_parse
@@ -9,6 +13,7 @@ BP = Blueprint('user', __name__)
 
 @BP.route('/login', methods=["GET", "POST"])
 def login():
+    ''' Log in a user '''
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     form = LoginForm()
@@ -26,11 +31,13 @@ def login():
 
 @BP.route('/logout')
 def logout():
+    ''' Log out a user '''
     logout_user()
     return redirect(url_for('main.index'))
 
 @BP.route('/register', methods=['GET', 'POST'])
 def register():
+    ''' Register a user '''
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     form = RegistrationForm()

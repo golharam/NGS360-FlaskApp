@@ -19,7 +19,7 @@ test:
 	source .venv/bin/activate && python -m pytest -vv --cov app/ --ignore=tests/FrontEnd && coverage html
 
 lint:
-	source .venv/bin/activate && PYTHONPATH="." pylint app tests --load-plugins pylintplugins --exit-zero
+	source .venv/bin/activate && PYTHONPATH="." pylint app tests --load-plugins pylintplugins,pylint_flask_sqlalchemy --exit-zero
 
 browsertests:
 	source .venv/bin/activate && python3 -m pytest -v tests/FrontEnd

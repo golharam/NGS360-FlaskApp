@@ -13,7 +13,7 @@ from flask import request, abort, current_app, jsonify
 from flask_login import current_user
 from flask_restplus import Namespace, Resource
 from app.models import Project, RunToSamples, SequencingRun
-from app.biojira import getJira, getTBioPMJiraIssues, addCommentToIssues
+from app.biojira import get_jira, get_jira_issues, add_comment_to_issues
 from app.blueprints.aws_batch import submit_job
 from app import SEVENBRIDGES as sbg
 
@@ -88,10 +88,10 @@ class ProjectList(Resource):
                 comment = "Project submitted to Xpress for loading."
             else:
                 comment = "Xpress project loaded, http://xpress.pri.bms.com/CGI/project_summary.cgi?project=%s" % xpress_project_id
-            biojira = getJira()
-            issues = getTBioPMJiraIssues(biojira, projectid)
+            biojira = get_jira_issues()
+            issues = get_jira_issues(biojira, projectid)
             if issues:
-                addCommentToIssues(biojira, comment, issues)
+                add_comment_to_issues(biojira, comment, issues)
             result, _ = super.get(projectid)
             return result, 201
         abort(404)

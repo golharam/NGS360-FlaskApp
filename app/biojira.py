@@ -1,8 +1,10 @@
-import os
+'''
+Interface module to Jira
+'''
 from jira import JIRA
 from flask import current_app
 
-def addCommentToIssues(biojira, comment, issues):
+def add_comment_to_issues(biojira, comment, issues):
     '''
     Add a comment to a list of Jira tickets
     :param comment: Comment to add
@@ -15,7 +17,7 @@ def addCommentToIssues(biojira, comment, issues):
         issue_keys.append(issue.key)
     return issue_keys
 
-def getJira():
+def get_jira():
     # Connect to Jira
     '''
     options = { 'server': jira_config.server }
@@ -33,13 +35,13 @@ def getJira():
     '''
     if current_app['JIRA_SERVER'] is not None and current_app['JIRA_USER'] is not None and \
        current_app['JIRA_PASSKEY'] is not None:
-        return JIRA(options = {'server': current_app['JIRA_SERVER']},
-                    basic_auth = (current_app['JIRA_USER'], current_app['JIRA_PASSKEY']))
+        return JIRA(options={'server': current_app['JIRA_SERVER']},
+                    basic_auth=(current_app['JIRA_USER'], current_app['JIRA_PASSKEY']))
     return None
 
-def getTBioPMJiraIssues(biojira, projectid):
+def get_jira_issues(biojira, projectid):
     '''
-    Return Jira TBIOPM epic ticket associated with this project ID.
+    Return Jira tickets associated with this project ID, on the specific JIRA_BOARD.
     If no epic ticket exists, return the tasks with this project ID.
     If no tasks exist, create one issue.
     '''
@@ -48,9 +50,11 @@ def getTBioPMJiraIssues(biojira, projectid):
 
     jira_board = current_app['JIRA_BOARD']
 
-    issues = biojira.search_issues('project="%s" and "Project ID"="%s" and issuetype="Epic"' % (jira_board, projectid))
+    issues = biojira.search_issues('project="%s" and "Project ID"="%s" and issuetype="Epic"' %
+                                   (jira_board, projectid))
     if not issues:
-        issues = biojira.search_issues('project="%s" and "Project ID"="%s" and issuetype="Task"' % (jira_board, projectid))
+        issues = biojira.search_issues('project="%s" and "Project ID"="%s" and issuetype="Task"' %
+                                       (jira_board, projectid))
     if not issues:
         issue = biojira.create_issue(project=jira_board,
                                      summary=projectid,
@@ -60,4 +64,3 @@ def getTBioPMJiraIssues(biojira, projectid):
             issue.update(fields={current_app['JIRA_PROJECTID_FIELD']: [projectid]})
             issues = [issue]
     return issues
-

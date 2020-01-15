@@ -1,5 +1,0 @@
-[MESSAGES CONTROL]
-disable=C0415
-
-[TYPECHECK]
-ignored-modules=flask_sqlalchemy
