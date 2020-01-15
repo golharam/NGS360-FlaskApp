@@ -4,7 +4,7 @@ NAME=ngs360-flask
 all: clean install test lint build
 
 clean:
-	find . -name __pycache__ -exec rm -rf {} \;
+	find . -name __pycache__ -exec rm -rf {} + 
 	rm -rf *.pyc .coverage .pytest_cache/ htmlcov/ .venv/ .env test.db
 
 install: requirements.txt requirements-dev.txt
