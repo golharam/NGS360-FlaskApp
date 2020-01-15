@@ -1,3 +1,5 @@
+# pylint: disable=C0114,C0115,C0116
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
