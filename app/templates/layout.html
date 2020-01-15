@@ -106,6 +106,7 @@
                             {% endif %}
                         </p>
                     </li>
+                    {% if current_user.username %}
                     <li id="notificationDropDown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                             <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
@@ -116,6 +117,7 @@
                             <li>{{ nav_link('main.show_batch_jobs', 'View All Jobs') }}</li>
                         </ul>
                     </li>
+                    {% endif %}
                     <li>
                         <p class="tourIcon" style="margin: 0; padding: 15px; cursor: pointer"><img src="/static/images/info-blue.png" alt="" onclick="tour.restart();"></p>
                     </li>
