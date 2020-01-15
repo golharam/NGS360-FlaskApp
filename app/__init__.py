@@ -2,6 +2,7 @@
 NGS360 Main Application package
 Author: Ryan Golhar <ryan.golhar@bms.com>
 '''
+# pylint: disable=C0415
 import logging
 from logging.handlers import TimedRotatingFileHandler, SMTPHandler
 import os

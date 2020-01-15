@@ -5,5 +5,6 @@ moto
 pytest
 pytest-cov
 pylint
+pylint-flask-sqlalchemy
 selenium
 testfixtures
