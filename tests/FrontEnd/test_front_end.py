@@ -62,7 +62,7 @@ class FrontEndTests(LiveServerTestCase):
                     self.fail(log_entry['message'])
                 self.fail("Unknown log entry: %s" % log_entry)
 
-    def Xtest_basespace_page(self):
+    def test_basespace_page(self):
         url = "%s/basespace" % self.get_server_url()
         self.check_page(url)
 
@@ -70,7 +70,7 @@ class FrontEndTests(LiveServerTestCase):
         ''' Make sure we can archive a run '''
         self.skipTest("not yet implemented")
 
-    def Xtest_illuminaruns_page(self):
+    def test_illuminaruns_page(self):
         url = "%s/illumina_runs" % self.get_server_url()
         self.check_page(url)
 
@@ -88,7 +88,7 @@ class FrontEndTests(LiveServerTestCase):
     def test_index_page(self):
         self.check_page(self.get_server_url())
 
-    def Xtest_projects_page(self):
+    def test_projects_page(self):
         url = "%s/projects" % self.get_server_url()
         self.check_page(url)
 
@@ -96,8 +96,8 @@ class FrontEndTests(LiveServerTestCase):
         url = "%s/projects/P-1" % self.get_server_url()
         self.check_page(url)
 
-    def Xtest_jobs_page(self):
-        url = "%s/projects" % self.get_server_url()
+    def test_jobs_page(self):
+        url = "%s/jobs" % self.get_server_url()
         self.check_page(url)
 
     def Xtest_job_log_page(self):
