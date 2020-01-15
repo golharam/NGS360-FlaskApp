@@ -26,7 +26,7 @@ test-frontend:
 	source .venv/bin/activate && python3 -m pytest -v tests/FrontEnd
 
 run:
-	source .venv/bin/activate && python application.py
+	source .venv/bin/activate && flask db upgrade && python application.py
 
 shell:
 	source .venv/bin/activate && flask shell
