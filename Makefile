@@ -1,5 +1,5 @@
 NAME=ngs360-flask
-.PHONY: clean install build test lint browsertests run shell
+.PHONY: clean install build test lint test-frontend run shell
 
 all: clean install test lint build
 
@@ -15,13 +15,14 @@ build:
 	docker build -t $(NAME) .
 
 test:
-	rm -rf test.db .coverage htmlcov/
+	rm -rf .env test.db .coverage htmlcov/
 	source .venv/bin/activate && python -m pytest -vv --cov app/ --ignore=tests/FrontEnd && coverage html
 
 lint:
 	source .venv/bin/activate && PYTHONPATH="." pylint app tests --load-plugins pylintplugins,pylint_flask_sqlalchemy --exit-zero
 
-browsertests:
+test-frontend:
+	rm -rf .env test.db
 	source .venv/bin/activate && python3 -m pytest -v tests/FrontEnd
 
 run:
