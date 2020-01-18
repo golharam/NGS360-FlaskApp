@@ -7,7 +7,7 @@ NGS 360 Projects
     GET     /api/v0/projects/[project_id]   Retrieve a project
     POST    /api/v0/projects                Create a new project
     PUT     /api/v0/projects/[project_id]   Update an existing project
-    DELETE  /api/v0/projects/[project_id]   Delete a project (this will always return not authorized)
+    DELETE  /api/v0/projects/[project_id]   Delete a project (always return not authorized)
 '''
 from flask import request, abort, current_app, jsonify
 from flask_login import current_user
@@ -21,7 +21,7 @@ NS = Namespace('projects', description='Project related operations')
 
 @NS.route("/<projectid>")
 class ProjectList(Resource):
-    def get(projectid):
+    def get(self, projectid):
         project = Project.query.get(projectid)
         if not project:
             result = {}
@@ -41,7 +41,7 @@ class ProjectList(Resource):
                 'xpress_project_id': project.xpress_project_id,
                 'sequencing_runs': associated_runs
             }
-        return jsonify(result), 200
+        return result, 200
 
     def put(projectid):
         ''' REST API to update project '''
