@@ -4,14 +4,14 @@ BaseSpace interface to BaseSpace REST API, v1pre3
 Author: Ryan Golhar <ryan.golhar@bms.com>
 """
 from urllib.request import urlopen
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 import json
 
 def get_json(url):
     """ Return JSON object from URL """
     try:
         response = urlopen(url)
-    except HTTPError:
+    except (HTTPError, URLError):
         return None
     data = json.load(response)
     return data
