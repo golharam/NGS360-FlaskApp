@@ -58,3 +58,43 @@ class ProjectsTests(TestCase):
                                                       's3_run_folder_path': 's3://somebucket/PHIX3_test'}],
                                  'wes_qc_report': None,
                                  'xpress_project_id': 12345}
+
+    def test_put_project_no_json(self):
+        # Test
+        response = self.client.put('/api/v0/projects/P-00000000-0001')
+        # Check
+        assert response.status_code == 404
+
+    def test_put_project_unknown_json(self):
+        json_data = {'some': 'tag'}
+        # Test
+        response = self.client.put('/api/v0/projects/P-00000000-0001', json=json_data)
+        # Check
+        assert response.status_code == 404
+
+    def test_put_project(self):
+        # Set up test case
+        projectid = 'P-00000000-0001'
+        json_data = {'xpress_project_id': 12345}
+        # Set up supporting mocks
+        # Test
+        response = self.client.put('/api/v0/projects/%s' % projectid, json=json_data)
+        # Check
+        assert response.status_code == 201
+        db_project = Project.query.filter_by(id=projectid).first()
+        assert db_project.xpress_project_id == 12345
+
+    def test_put_project_updatexpress(self):
+        # Set up test case
+        projectid = 'P-00000000-0001'
+        json_data = {'xpress_project_id': 12345}
+        # Set up supporting mocks
+        project = Project(id=projectid, xpress_project_id=11111)
+        db.session.add(project)
+        db.session.commit()
+        # Test
+        response = self.client.put('/api/v0/projects/%s' % projectid, json=json_data)
+        # Check
+        assert response.status_code == 201
+        db_project = Project.query.filter_by(id=projectid).first()
+        assert db_project.xpress_project_id == 12345

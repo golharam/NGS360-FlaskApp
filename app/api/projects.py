@@ -15,7 +15,7 @@ from flask_restplus import Namespace, Resource
 from app.models import Project, RunToSamples, SequencingRun
 from app.biojira import get_jira, get_jira_issues, add_comment_to_issues
 from app.blueprints.aws_batch import submit_job
-from app import SEVENBRIDGES as sbg
+from app import SEVENBRIDGES as sbg, DB as db
 
 NS = Namespace('projects', description='Project related operations')
 
@@ -43,35 +43,35 @@ class ProjectList(Resource):
             }
         return result, 200
 
-    def put(projectid):
+    def put(self, projectid):
         ''' REST API to update project '''
         # TODO: Secure with auth_tokens
         if not request.json:
             return '{"error": "No json included"}', 404
 
-        if 'rnaseq_qc_report' in request.json:
-            rnaseq_qc_report = request.json['rnaseq_qc_report']
-            project = Project.query.get(projectid)
-            if project is None:
-                project = Project(id=projectid, rnaseq_qc_report=rnaseq_qc_report)
-                db.session.add(project)
-            else:
-                project.rnaseq_qc_report = rnaseq_qc_report
-            db.session.commit()
-            result, _ = super.get(projectid)
-            return result, 201
+        #if 'rnaseq_qc_report' in request.json:
+        #    rnaseq_qc_report = request.json['rnaseq_qc_report']
+        #    project = Project.query.get(projectid)
+        #    if project is None:
+        #        project = Project(id=projectid, rnaseq_qc_report=rnaseq_qc_report)
+        #        db.session.add(project)
+        #    else:
+        #        project.rnaseq_qc_report = rnaseq_qc_report
+        #    db.session.commit()
+        #    result, _ = super.get(projectid)
+        #    return result, 201
 
-        if 'wes_qc_report' in request.json:
-            wes_qc_report = request.json['wes_qc_report']
-            project = Project.query.get(projectid)
-            if project is None:
-                project = Project(id=projectid, wes_qc_report=wes_qc_report)
-                db.session.add(project)
-            else:
-                project.wes_qc_report = wes_qc_report
-            db.session.commit()
-            result, _ = super.get(projectid)
-            return result, 201
+        #if 'wes_qc_report' in request.json:
+        #    wes_qc_report = request.json['wes_qc_report']
+        #    project = Project.query.get(projectid)
+        #    if project is None:
+        #        project = Project(id=projectid, wes_qc_report=wes_qc_report)
+        #        db.session.add(project)
+        #    else:
+        #        project.wes_qc_report = wes_qc_report
+        #    db.session.commit()
+        #    result, _ = super.get(projectid)
+        #    return result, 201
 
         if 'xpress_project_id' in request.json:
             xpress_project_id = int(request.json['xpress_project_id'])
@@ -84,15 +84,15 @@ class ProjectList(Resource):
             db.session.commit()
 
             # Comment on TBIOPM ticket that project about Xpress project status
-            if xpress_project_id == -1:
-                comment = "Project submitted to Xpress for loading."
-            else:
-                comment = "Xpress project loaded, http://xpress.pri.bms.com/CGI/project_summary.cgi?project=%s" % xpress_project_id
-            biojira = get_jira_issues()
-            issues = get_jira_issues(biojira, projectid)
-            if issues:
-                add_comment_to_issues(biojira, comment, issues)
-            result, _ = super.get(projectid)
+            #if xpress_project_id == -1:
+            #    comment = "Project submitted to Xpress for loading."
+            #else:
+            #    comment = "Xpress project loaded, http://xpress.pri.bms.com/CGI/project_summary.cgi?project=%s" % xpress_project_id
+            #biojira = get_jira_issues()
+            #issues = get_jira_issues(biojira, projectid)
+            #if issues:
+            #    add_comment_to_issues(biojira, comment, issues)
+            result, _ = self.get(projectid)
             return result, 201
         abort(404)
 
