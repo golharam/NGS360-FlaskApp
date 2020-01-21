@@ -7,7 +7,7 @@ COPY requirements.txt requirements-dev.txt /app/
 RUN pip install -r requirements.txt
 RUN pip install -r requirements-dev.txt
 
-COPY application.py boot.sh config.py test.sh /app/
+COPY application config.py boot.sh test.sh /app/
 COPY app/ /app/app/
 COPY migrations /app/migrations/
 COPY tests /app/tests/
