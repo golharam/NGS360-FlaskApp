@@ -25,6 +25,9 @@ test-frontend:
 	rm -rf .env test.db
 	source .venv/bin/activate && python3 -m pytest -v tests/FrontEnd
 
+docker-run:
+	docker run --rm -ti -v app.db:/app/app.db -p 5000:5000 $(NAME)
+
 run:
 	source .venv/bin/activate && flask db upgrade && python application.py
 
