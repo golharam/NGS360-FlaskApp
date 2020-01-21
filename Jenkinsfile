@@ -5,7 +5,12 @@ pipeline {
       agent { dockerfile true }
       steps {
         sh '/app/test.sh'
-      } 
+      }
+      post {
+        success {
+          cobertura(coberturaReportFile: 'coverage.xml')
+        }
+      }
     }
   }
 }
