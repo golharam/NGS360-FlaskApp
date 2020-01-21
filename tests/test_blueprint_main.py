@@ -69,16 +69,6 @@ class BlueprintMainTests(TestCase):
         res = self.client.get('/illumina_runs')
         assert res.status_code == 200
 
-    def test_projectregistry_json(self):
-        ''' Test /projects '''
-        res = self.client.get('/projectregistry_json')
-        assert res.status_code == 200
-
-    def test_projectregistry_json_withfields(self):
-        ''' Test /projects '''
-        res = self.client.get('/projectregistry_json?fields=projectid,projectname')
-        assert res.status_code == 200
-
 def test_file_logging():
     ''' Make sure file logging is set up '''
     file_config = TestConfig()

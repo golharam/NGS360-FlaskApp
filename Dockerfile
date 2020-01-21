@@ -11,6 +11,7 @@ COPY application.py boot.sh config.py test.sh /app/
 COPY app/ /app/app/
 COPY migrations /app/migrations/
 COPY tests /app/tests/
+COPY test_data /app/test_data/
 
 EXPOSE 5000
 CMD ["boot.sh"]

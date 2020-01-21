@@ -41,12 +41,9 @@ class ProjectList(Resource):
         pr_url = current_app.config['PROJECTREGISTRY']
         project_registry_details = project_registry.get_project(pr_url, projectid)
 
+        result = {}
         project = Project.query.get(projectid)
-        if not project:
-            result = {
-                'project_details': project_registry_details
-            }
-        else:
+        if project:
             run_to_samples = RunToSamples.query.filter(RunToSamples.project_id == projectid)
 
             associated_runs = []
@@ -63,6 +60,9 @@ class ProjectList(Resource):
                 'xpress_project_id': project.xpress_project_id,
                 'sequencing_runs': associated_runs
             }
+        if project_registry_details:
+            result['project_details'] = project_registry_details
+
         return result
 
     def put(self, projectid):
@@ -105,6 +105,7 @@ class ProjectList(Resource):
                 project.xpress_project_id = xpress_project_id
             db.session.commit()
 
+            # TODO: This should be a lambda function called by Xpress
             # Comment on TBIOPM ticket that project about Xpress project status
             #if xpress_project_id == -1:
             #    comment = "Project submitted to Xpress for loading."
@@ -114,7 +115,7 @@ class ProjectList(Resource):
             #issues = get_jira_issues(biojira, projectid)
             #if issues:
             #    add_comment_to_issues(biojira, comment, issues)
-            result, _ = self.get(projectid)
+            result = self.get(projectid)
             return result, 201
         abort(404)
 
