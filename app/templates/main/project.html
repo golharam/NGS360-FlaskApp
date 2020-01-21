@@ -236,8 +236,8 @@
             }
         });
 
-        $.get("/projectregistry_projectdetails/{{projectid}}", function (data) {
-
+        $.get("/api/v0/projects/{{projectid}}", function (data) {
+            data = data['project_details'];
             $('.projectname').text(data[0].projectname);
             $('#businessowner').text( data[0].businessowner);
             $('#dataowner').text( data[0].dataowner);

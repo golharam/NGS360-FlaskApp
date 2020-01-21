@@ -36,7 +36,7 @@
     $(document).ready( function () {
         $.ajax({
             'type': 'GET',
-            'url': '/projectregistry_json?fields=projectid,projectname',
+            'url': '/api/v0/projects?fields=projectid,projectname',
             'success' : function(data) {
                 $('.ngsSearchbar').attr("placeholder", "Search by Project ID or Name");
                 var result = [];

@@ -32,3 +32,22 @@ def get_projects(project_registry_url, fields=None):
             project_json[field] = project[field]
         project_list.append(project_json)
     return project_list
+
+def get_project(project_registry_url, project):
+    ''' Returns a dict of a specific project '''
+    if project_registry_url is None:
+        return None
+
+    projects = dict(data=[])
+    try:
+        url = "%s?mode=get&func=project&format=json&projectid=%s" % (project_registry_url, project)
+        response = urlopen(url)
+    except:
+        pass
+
+    projects = json.load(response)
+    if 'data' in projects:
+        project = projects['data']
+        if project:
+            return project
+    return None
