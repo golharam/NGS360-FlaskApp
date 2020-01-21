@@ -1,5 +1,5 @@
 NAME=ngs360-flask
-.PHONY: clean install build test lint test-frontend run shell docker-run
+.PHONY: clean install build test lint test-frontend run shell docker-run docker-test
 
 all: clean install test lint build
 
@@ -27,6 +27,9 @@ test-frontend:
 
 docker-run:
 	docker run --rm -ti -v app.db:/app/app.db -p 5000:5000 $(NAME)
+
+docker-test:
+	docker run --rm -ti $(NAME) test.sh
 
 run:
 	source .venv/bin/activate && flask db upgrade && python application.py
