@@ -237,15 +237,18 @@
         });
 
         $.get("/api/v0/projects/{{projectid}}", function (data) {
-            data = data['project_details'];
-            $('.projectname').text(data[0].projectname);
-            $('#businessowner').text( data[0].businessowner);
-            $('#dataowner').text( data[0].dataowner);
-            $('#department').text( data[0].department);
-            $('#experimenttype').text( data[0].experimenttype);
-            $('#genomebuild').text(data[0].genomebuild);
-            $('#racode').text(data[0].racode);
-
+            if ('project_details' in data) {
+                data = data['project_details'];
+                $('.projectname').text(data[0].projectname);
+                $('#businessowner').text( data[0].businessowner);
+                $('#dataowner').text( data[0].dataowner);
+                $('#department').text( data[0].department);
+                $('#experimenttype').text( data[0].experimenttype);
+                $('#genomebuild').text(data[0].genomebuild);
+                $('#racode').text(data[0].racode);
+            } else {
+                $('.projectname').text("Project Details");
+            }
             $('#hideAll').css('display', 'none')
         });
 
