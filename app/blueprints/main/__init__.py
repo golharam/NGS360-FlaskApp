@@ -89,17 +89,3 @@ def show_project(projectid):
                            xpress_project_id=xpress_project_id,
                            runs=associated_runs)
 
-# TODO: Move this to a REST Endpoint
-@BP.route("/projectregistry_json")
-def projectregistry_json():
-    '''
-    Returns a json list of all projects in ProjectRegistry, optionally
-    limited to specific fields
-    :param fields: comma-seperated list of fields to retrieve
-    :return: JSON list of projects
-    '''
-    pr_url = current_app.config['PROJECTREGISTRY']
-    if 'fields' in request.args:
-        fields = request.args.get('fields').split(",")
-        return jsonify(project_registry.get_projects(pr_url, fields))
-    return jsonify(project_registry.get_projects(pr_url))

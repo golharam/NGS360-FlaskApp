@@ -15,17 +15,35 @@ from flask_restplus import Namespace, Resource
 from app.models import Project, RunToSamples, SequencingRun
 from app.biojira import get_jira, get_jira_issues, add_comment_to_issues
 from app.blueprints.aws_batch import submit_job
-from app import SEVENBRIDGES as sbg, DB as db
+from app import SEVENBRIDGES as sbg, DB as db, project_registry
 
 NS = Namespace('projects', description='Project related operations')
+
+@NS.route("")
+class Projects(Resource):
+    def get(self):
+        '''
+        Returns a json list of all projects in ProjectRegistry, optionally
+        limited to specific fields
+        :param fields: comma-seperated list of fields to retrieve
+        :return: JSON list of projects
+        '''
+        pr_url = current_app.config['PROJECTREGISTRY']
+        if 'fields' in request.args:
+            fields = request.args.get('fields').split(",")
+            return jsonify(project_registry.get_projects(pr_url, fields))
+        return project_registry.get_projects(pr_url)
+
 
 @NS.route("/<projectid>")
 class ProjectList(Resource):
     def get(self, projectid):
+        pr_url = current_app.config['PROJECTREGISTRY']
+        project_registry_details = project_registry.get_project(pr_url, projectid)
+
+        result = {}
         project = Project.query.get(projectid)
-        if not project:
-            result = {}
-        else:
+        if project:
             run_to_samples = RunToSamples.query.filter(RunToSamples.project_id == projectid)
 
             associated_runs = []
@@ -36,12 +54,16 @@ class ProjectList(Resource):
 
             result = {
                 'id': project.id,
+                'project_details': project_registry_details,
                 'rnaseq_qc_report': project.rnaseq_qc_report,
                 'wes_qc_report': project.wes_qc_report,
                 'xpress_project_id': project.xpress_project_id,
                 'sequencing_runs': associated_runs
             }
-        return result, 200
+        if project_registry_details:
+            result['project_details'] = project_registry_details
+
+        return result
 
     def put(self, projectid):
         ''' REST API to update project '''
@@ -83,6 +105,7 @@ class ProjectList(Resource):
                 project.xpress_project_id = xpress_project_id
             db.session.commit()
 
+            # TODO: This should be a lambda function called by Xpress
             # Comment on TBIOPM ticket that project about Xpress project status
             #if xpress_project_id == -1:
             #    comment = "Project submitted to Xpress for loading."
@@ -92,7 +115,7 @@ class ProjectList(Resource):
             #issues = get_jira_issues(biojira, projectid)
             #if issues:
             #    add_comment_to_issues(biojira, comment, issues)
-            result, _ = self.get(projectid)
+            result = self.get(projectid)
             return result, 201
         abort(404)
 

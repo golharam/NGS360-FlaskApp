@@ -19,6 +19,17 @@ class ProjectsTests(TestCase):
         self.client = None
         self.app_context.pop()
 
+    def test_get_projects(self):
+        ''' Test /projects '''
+        res = self.client.get('/api/v0/projects')
+        assert res.status_code == 200
+        assert res.json == []
+
+    def test_get_projects_withfields(self):
+        ''' Test /projects '''
+        res = self.client.get('/api/v0/projects?fields=projectid,projectname')
+        assert res.status_code == 200
+
     def test_get_project_noprojectexists(self):
         # Test
         response = self.client.get('/api/v0/projects/P-00000000-0001')
@@ -47,17 +58,16 @@ class ProjectsTests(TestCase):
         response = self.client.get('/api/v0/projects/P-00000000-0001')
         # Check
         assert response.status_code == 200
-        assert response.json == {'id': 'P-00000000-0001',
-                                 'rnaseq_qc_report': None,
-                                 'sequencing_runs': [{'experiment_name': 'PHIX3 test',
+        assert response.json['id'] == 'P-00000000-0001'
+        assert response.json['sequencing_runs'] == [{'experiment_name': 'PHIX3 test',
                                                       'flowcell_id': '000000001',
                                                       'id': 1,
                                                       'machine_id': 'M00123',
                                                       'run_date': '2019-01-10',
                                                       'run_number': '1',
-                                                      's3_run_folder_path': 's3://somebucket/PHIX3_test'}],
-                                 'wes_qc_report': None,
-                                 'xpress_project_id': 12345}
+                                                      's3_run_folder_path': 's3://somebucket/PHIX3_test'}]
+        assert response.json['xpress_project_id'] == 12345
+        assert 'project_details' in response.json
 
     def test_put_project_no_json(self):
         # Test
