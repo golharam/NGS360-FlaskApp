@@ -4,7 +4,7 @@ pipeline {
     stage('Unit Test') {
       agent { dockerfile true }
       steps {
-        sh 'test.sh'
+        sh '/app/test.sh'
       } 
     }
   }
