@@ -14,4 +14,4 @@ COPY tests /app/tests/
 COPY test_data /app/test_data/
 
 EXPOSE 5000
-CMD ["boot.sh"]
+CMD ["./boot.sh"]
