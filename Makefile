@@ -32,10 +32,11 @@ shell:
 	source .venv/bin/activate && flask shell
 
 docker-run:
-    docker run --rm -ti -v app.db:/app/app.db -p 5000:5000 $(NAME)
+	docker run --rm -ti -v app.db:/app/app.db -p 5000:5000 $(NAME)
 
 docker-test:
-    docker run --rm -ti $(NAME) test.sh
+	docker run --rm -ti $(NAME) test.sh
 
 docker-shell:
-	docker run --rm -ti -v $PWD/app.db:/app/app.db -v $PWD/app:/app/app -v $PWD/tests:/app/tests -p 5000:5000 ngs360-flask /bin/bash
+	docker run --rm -ti -v $(PWD)/app.db:/app/app.db -v $(PWD)/app:/app/app -v $(PWD)/tests:/app/tests -p 5000:5000 ngs360-flask /bin/bash
+
