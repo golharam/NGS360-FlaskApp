@@ -81,8 +81,10 @@ class BaseSpace:
         """
         Returns a list of project.  Assumes get_user_id was called during initialization.
         """
+        retval = []
+        if not self.userid:
+            return retval
         offset = 0
-        ret_val = []
         while True:
             url = '%s/users/%s/projects?Limit=1024&Offset=%s&access_token=%s' % (self.base_url,
                                                                                  self.userid,
