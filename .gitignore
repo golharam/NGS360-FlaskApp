@@ -6,3 +6,11 @@ htmlcov/
 .vscode/
 .DS_Store
 app.db
+
+# Elastic Beanstalk CLI Virtual Python Env
+ebenv/
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
