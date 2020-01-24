@@ -25,7 +25,11 @@ make - Run the app in Docker
 ## Development
 NGS360 uses 'A successful Git branching model' for development:
   - Feature branches are forked from the develop branch
-  - master branch is pushed into production
   - Branch names should be Jira ticket ids
+  - master branch is pushed into production
+  - Deployment to elastic beanstalk is done off deploy-eb
+    - develop -> deploy-eb -> dev site
+    - master -> deploy-eb -> prod site
 
 We also aim to achieve https://12factor.net
+
