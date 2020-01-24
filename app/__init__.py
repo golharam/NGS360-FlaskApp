@@ -77,7 +77,7 @@ def create_app(config_class=DefaultConfig):
             mail_handler = SMTPHandler(
                 mailhost=(app.config['MAIL_SERVER'], app.config['MAIL_PORT']),
                 fromaddr='no-reply@' + app.config['MAIL_SERVER'],
-                toaddrs=app.config['ADMINS'], subject='%s Failure' % app.config['APP_NAME'],
+                toaddrs=app.config['MAIL_ADMINS'], subject='%s Failure' % app.config['APP_NAME'],
                 credentials=auth, secure=secure)
             mail_handler.setLevel(logging.ERROR)
             app.logger.addHandler(mail_handler)
