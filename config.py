@@ -27,22 +27,40 @@ class DefaultConfig:
         'sqlite:///' + os.path.join(BASEDIR, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # For production, define these env vars:
-    # FLASK_LOG_FILE = /path/to/log/file
-    # FLASK_LOG_LEVEL = INFO
+    FLASK_LOG_FILE = os.environ.get('FLASK_LOG_FILE') or None
+    FLASK_LOG_LEVEL = os.environ.get('FLASK_LOG_LEVEL') or 'INFO'
 
     BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
+    SB_AUTH_TOKEN = os.environ.get('SB_AUTH_TOKEN') or None
+
+    BCL2FASTQ_JOB = os.environ.get('BCL2FASTQ_JOB') or None
+    BCL2FASTQ_QUEUE = os.environ.get('BCL2FASTQ_QUEUE') or None
+    SCRNASEQ_LAMBDA_FN = os.environ.get('SCRNASEQ_LAMBDA_FN') or None
+
+    BOTO3_SERVICES = ['batch', 'lambda', 'logs', 's3']
+
+    JOB_DEFINITION = os.environ.get('NGS_JOB') or None
+    JOB_QUEUE = os.environ.get('NGS_JOB_QUEUE') or None
+
+    JIRA_SERVER = os.environ.get('JIRA_SERVER') or None
+    JIRA_USER = os.environ.get('JIRA_USER') or None
+    JIRA_PASSKEY = os.environ.get('JIRA_PASSKEY') or None
+    JIRA_BOARD = os.environ.get('JIRA_BOARD') or None
+    JIRA_PROJECTID_FIELD = os.environ.get('JIRA_PROJECTID_FIELD') or None
 
     # Email error log settings
-    # MAIL_SERVER = mailserver
-    # MAIL_PORT
-    # MAIL_USERNAME = set to mail server login, if needed
-    # MAIL_PASSWORD =
-    # MAIL_USE_TLS = True
-    # ADMINS = comma separate list of who should get emailed
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or None
+    MAIL_PORT = os.environ.get('MAIL_PORT') or None
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or None
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or None
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') or None
+    MAIL_ADMINS = os.environ.get('MAIL_ADMINS') or None
 
-    # JIRA_FEEDBACK =
-    # JIRA_BUGREPORT = 
+    JIRA_FEEDBACK = os.environ.get("JIRA_FEEDBACK") or None
+    JIRA_BUGREPORT = os.environ.get('JIRA_BUGREPORT')
+
+    HELP_URL = os.environ.get("HELP_URL") or None
+    XPRESS_RESTAPI_ENDPOINT = os.environ.get("XPRESS_RESTAPI_ENDPOINT") or None
 
 class TestConfig(DefaultConfig):
     ''' Config settings for unit testing '''
@@ -59,3 +77,9 @@ class TestConfig(DefaultConfig):
     # it means we may skip some functionality that needs to be
     # tested when a user is logged in.
     #LOGIN_DISABLED = True
+
+    # Assist to mock flask-boto3 so as to not read env profile
+    BOTO3_ACCESS_KEY = 'access'
+    BOTO3_SECRET_KEY = 'secret'
+    BOTO3_REGION = 'us-west-1'
+    #BOTO3_PROFILE = 'default'

@@ -1,7 +1,10 @@
 coverage
+flask_testing
+mock
+moto
 pytest
 pytest-cov
 pylint
-testfixtures
-flask_testing
+pylint-flask-sqlalchemy
 selenium
+testfixtures

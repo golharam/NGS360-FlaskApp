@@ -2,6 +2,7 @@
 Front-End tests
 https://scotch.io/tutorials/test-a-flask-app-with-selenium-webdriver-part-1
 '''
+import datetime
 import unittest
 import urllib
 from flask_testing import LiveServerTestCase
@@ -11,8 +12,7 @@ from selenium.webdriver.common.keys import Keys
 
 from config import TestConfig
 from app import create_app, DB as db
-from app.models import User
-
+from app.models import User, SequencingRun
 
 class FrontEndTests(LiveServerTestCase):
     def create_app(self):
@@ -25,8 +25,9 @@ class FrontEndTests(LiveServerTestCase):
         options.add_argument("--window-size=1920x1080")
         self.driver = webdriver.Chrome(options=options)
 
+        print("Creating DB")
         db.create_all()
-        user = User(username='testuser', email='testuser@noemail.com')
+        user = User(id=1, username='testuser', email='testuser@noemail.com')
         user.set_password('password')
         db.session.add(user)
         db.session.commit()
@@ -62,23 +63,46 @@ class FrontEndTests(LiveServerTestCase):
                 self.fail("Unknown log entry: %s" % log_entry)
 
     def test_basespace_page(self):
-        ''' Make sure there are no Javascript errors when the home page loads '''
         url = "%s/basespace" % self.get_server_url()
         self.check_page(url)
 
+    def Xtest_basespace_archiverun_action(self):
+        ''' Make sure we can archive a run '''
+        self.skipTest("not yet implemented")
+
     def test_illuminaruns_page(self):
-        ''' Make sure there are no Javascript errors when the home page loads '''
         url = "%s/illumina_runs" % self.get_server_url()
         self.check_page(url)
 
+    def test_illuminarun_page(self):
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
+                            run_number='1', flowcell_id='000000001',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        db.session.commit()
+        url = "%s/illumina_run?runid=1" % self.get_server_url()
+        self.check_page(url)
+
     def test_index_page(self):
-        ''' Make sure there are no Javascript errors when the home page loads '''
         self.check_page(self.get_server_url())
 
-    def test_jobs_page(self):
-        ''' Make sure there are no Javascript errors when the home page loads '''
+    def test_projects_page(self):
         url = "%s/projects" % self.get_server_url()
         self.check_page(url)
+
+    def Xtest_project_page(self):
+        url = "%s/projects/P-1" % self.get_server_url()
+        self.check_page(url)
+
+    def test_jobs_page(self):
+        url = "%s/jobs" % self.get_server_url()
+        self.check_page(url)
+
+    def Xtest_job_log_page(self):
+        self.skipTest("Not yet implemented")
+
 
 if __name__ == '__main__':
     unittest.main()

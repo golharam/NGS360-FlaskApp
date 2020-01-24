@@ -24,27 +24,9 @@
 </div>
 
 <footer class="footer" style="text-align:center">
-    <!--
-    <div>
-        <table style="margin: 0 auto" class="status-table">
-            <tr>
-                <td style="padding-right: 10px"><a href='https://jenkins-ci.pri.bms.com:8443/job/BaseSpace%20Uptime%20Monitor/'><img class="serverIcon" src='https://jenkins-ci.pri.bms.com:8443/job/BaseSpace%20Uptime%20Monitor/statusbadges-server/icon'></a></td>
-                <td align="left" style="padding-right: 20px">BaseSpace</td>
-                <td style="padding-right: 10px"><a href='https://jenkins-ci.pri.bms.com:8443/job/ProjectRegistry%20Uptime%20Monitor/'><img class="serverIcon" src='https://jenkins-ci.pri.bms.com:8443/job/ProjectRegistry%20Uptime%20Monitor/statusbadges-server/icon'></a></td>
-                <td align="left">Project Registry</td>
-            </tr>
-            <tr>
-                <td style="padding-right: 10px"><a href='https://jenkins-ci.pri.bms.com:8443/job/SevenBridges%20Uptime%20Monitor/'><img class="serverIcon" src='https://jenkins-ci.pri.bms.com:8443/job/SevenBridges%20Uptime%20Monitor/statusbadges-server/icon'></a></td>
-                <td align="left" style="padding-right: 20px">SevenBridges</td>
-                <td style="padding-right: 10px"><a href='https://jenkins-ci.pri.bms.com:8443/job/Xpress%20Uptime%20Monitor/'><img class="serverIcon" src='https://jenkins-ci.pri.bms.com:8443/job/Xpress%20Uptime%20Monitor/statusbadges-server/icon'></a></td>
-                <td align="left">Xpress</td>
-            </tr>
-        </table>
-    </div>
-
-    <br>
-    -->
-    <span class="documentation">Help documents can be found here: <a href="https://biodoc.pri.bms.com:8443/display/NWP/NGS+360+Documents">NGS 360 Documents</a></span><br />
+    {% if config['HELP_URL'] %}
+    <span class="documentation">Help documents can be found here: <a href="{{ config['HELP_URL'] }}">NGS 360 Documents</a></span><br />
+    {% endif %}
 </footer>
 
 {% endblock %}
@@ -54,7 +36,7 @@
     $(document).ready( function () {
         $.ajax({
             'type': 'GET',
-            'url': '/projectregistry_json?fields=projectid,projectname',
+            'url': '/api/v0/projects?fields=projectid,projectname',
             'success' : function(data) {
                 $('.ngsSearchbar').attr("placeholder", "Search by Project ID or Name");
                 var result = [];
@@ -119,9 +101,6 @@
                         }
                     }
                 });
-            },
-            'error' : function(){
-                console.log('failed to load project information');
             }
         });
 
