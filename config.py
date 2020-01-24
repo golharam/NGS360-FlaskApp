@@ -27,9 +27,8 @@ class DefaultConfig:
         'sqlite:///' + os.path.join(BASEDIR, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    # For production, define these env vars:
-    # FLASK_LOG_FILE = /path/to/log/file
-    # FLASK_LOG_LEVEL = INFO
+    FLASK_LOG_FILE = os.environ.get('FLASK_LOG_FILE') or None
+    FLASK_LOG_LEVEL = os.environ.get('FLASK_LOG_LEVEL') or INFO
 
     BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
     SB_AUTH_TOKEN = os.environ.get('SB_AUTH_TOKEN') or None
@@ -50,15 +49,15 @@ class DefaultConfig:
     JIRA_PROJECTID_FIELD = os.environ.get('JIRA_PROJECTID_FIELD') or None
 
     # Email error log settings
-    # MAIL_SERVER = mailserver
-    # MAIL_PORT
-    # MAIL_USERNAME = set to mail server login, if needed
-    # MAIL_PASSWORD =
-    # MAIL_USE_TLS = True
-    # ADMINS = comma separate list of who should get emailed
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or None
+    MAIL_PORT = os.environ.get('MAIL_PORT') or None
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME') or None
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or None
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS') or None
+    MAIL_ADMINS = os.environ.get('MAIL_ADMINS') or None
 
-    # JIRA_FEEDBACK =
-    # JIRA_BUGREPORT =
+    JIRA_FEEDBACK = os.environ.get("JIRA_FEEDBACK") or None
+    JIRA_BUGREPORT = os.environ.get('JIRA_BUGREPORT')
 
     HELP_URL = os.environ.get("HELP_URL") or None
     XPRESS_RESTAPI_ENDPOINT = os.environ.get("XPRESS_RESTAPI_ENDPOINT") or None
