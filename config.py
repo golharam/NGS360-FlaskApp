@@ -28,7 +28,7 @@ class DefaultConfig:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     FLASK_LOG_FILE = os.environ.get('FLASK_LOG_FILE') or None
-    FLASK_LOG_LEVEL = os.environ.get('FLASK_LOG_LEVEL') or INFO
+    FLASK_LOG_LEVEL = os.environ.get('FLASK_LOG_LEVEL') or 'INFO'
 
     BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
     SB_AUTH_TOKEN = os.environ.get('SB_AUTH_TOKEN') or None
