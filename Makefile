@@ -1,5 +1,5 @@
 NAME=ngs360-flask
-.PHONY: clean install build test lint test-frontend run shell docker-run docker-test docker-shell deploy-ngsdev
+.PHONY: clean install build lint test-frontend run shell docker-run docker-test docker-shell deploy-ngsdev
 
 all: clean install test lint build
 
@@ -10,13 +10,6 @@ clean:
 install: requirements.txt requirements-dev.txt
 	python3 -m venv .venv
 	source .venv/bin/activate && pip install -r requirements.txt && pip install -r requirements-dev.txt
-
-build:
-	docker build -t $(NAME) .
-
-test:
-	rm -rf .env test.db .coverage htmlcov/
-	source .venv/bin/activate && python -m pytest -vv --cov app/ --ignore=tests/FrontEnd && coverage html
 
 lint:
 	source .venv/bin/activate && PYTHONPATH="." pylint app tests --load-plugins pylintplugins,pylint_flask_sqlalchemy --exit-zero
@@ -31,14 +24,17 @@ run:
 shell:
 	source .venv/bin/activate && flask shell
 
-docker-run:
-	docker run --rm -ti -v app.db:/app/app.db -p 5000:5000 $(NAME)
+build:
+	docker build -t $(NAME) .
 
 docker-test: build
 	docker run --rm -ti $(NAME) ./test.sh
 
+docker-run:
+	docker run --rm -ti -v $(PWD)/app.db:/app/app.db -v $(PWD)/app:/app/app -v $(PWD)/tests:/app/tests -p 5000:5000 -e FLASK_ENV=development $(NAME)
+
 docker-shell:
-	docker run --rm -ti -v $(PWD)/app.db:/app/app.db -v $(PWD)/app:/app/app -v $(PWD)/tests:/app/tests -p 5000:5000 ngs360-flask /bin/bash
+	docker run --rm -ti -v $(PWD)/app.db:/app/app.db -v $(PWD)/app:/app/app -v $(PWD)/tests:/app/tests -p 5000:5000 $(NAME) /bin/bash
 
 deploy-ngsdev:
 	git checkout deploy-eb
