@@ -192,6 +192,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
     external_login = db.Column(db.Integer, default=0, nullable=False)
+    api_key = db.Column(db.String(64), index=True, unique=False, nullable=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
