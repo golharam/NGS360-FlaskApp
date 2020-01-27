@@ -19,7 +19,7 @@ class BatchJob(db.Model):
     submitted_on = db.Column(db.DATETIME(), default=datetime.utcnow)
     log_stream_name = db.Column(db.VARCHAR(255))
     status = db.Column(db.VARCHAR(15))
-    viewed = db.Column(db.BOOLEAN(), default=True, nullable=False)
+    viewed = db.Column(db.Integer, default=1, nullable=False)
 
     def to_dict(self):
         data = {
@@ -49,7 +49,7 @@ class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.VARCHAR(12))
     batchjob_id = db.Column(db.VARCHAR(45))
-    seen = db.Column(db.BOOLEAN(), default=False)
+    seen = db.Column(db.Integer, default=0, nullable=False)
     occurred_on = db.Column(db.DATETIME(), default=datetime.utcnow)
 
     def to_dict(self):
@@ -191,6 +191,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
+    external_login = db.Column(db.Integer, default=0, nullable=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
