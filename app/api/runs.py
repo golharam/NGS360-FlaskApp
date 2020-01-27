@@ -34,7 +34,7 @@ from flask_restplus import Namespace, Resource
 # REST API Resource, SampleSheet
 from sample_sheet import SampleSheet as IlluminaSampleSheet
 
-from app import BOTO3 as boto3
+from app import BOTO3 as boto3, DB as db
 from app.models import SequencingRun
 from app.blueprints.aws_batch import submit_job
 
