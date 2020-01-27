@@ -3,6 +3,7 @@ Database model
 '''
 # pylint: disable=C0116,E1101
 from datetime import datetime
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from app import DB as db, LOGINMANAGER as login
@@ -206,3 +207,26 @@ class User(UserMixin, db.Model):
 @login.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+@login.request_loader
+def load_user_from_request(request):
+    # first, try to login using the api_key url arg
+    api_key = request.args.get('api_key')
+    if api_key:
+        user = User.query.filter_by(api_key=api_key).first()
+        if user:
+            return user
+    # next try SiteMinder
+    if 'Smuser' in request.headers and 'Mail' in request.headers:
+        username = request.headers.get('Smuser')
+        email = request.headers.get('Mail')
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            user = User(username=username, email=email, external_login=1)
+            user.set_password(os.urandom(12))
+            db.session.add(user)
+            db.session.commit()
+        return user
+    # finally, return None if both methods did not login the user
+    return None
+
