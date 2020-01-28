@@ -3,6 +3,7 @@ Database model
 '''
 # pylint: disable=C0116,E1101
 from datetime import datetime
+import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from app import DB as db, LOGINMANAGER as login
@@ -19,7 +20,7 @@ class BatchJob(db.Model):
     submitted_on = db.Column(db.DATETIME(), default=datetime.utcnow)
     log_stream_name = db.Column(db.VARCHAR(255))
     status = db.Column(db.VARCHAR(15))
-    viewed = db.Column(db.BOOLEAN(), default=True, nullable=False)
+    viewed = db.Column(db.Integer, default=1, nullable=False)
 
     def to_dict(self):
         data = {
@@ -49,7 +50,7 @@ class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = db.Column(db.VARCHAR(12))
     batchjob_id = db.Column(db.VARCHAR(45))
-    seen = db.Column(db.BOOLEAN(), default=False)
+    seen = db.Column(db.Integer, default=0, nullable=False)
     occurred_on = db.Column(db.DATETIME(), default=datetime.utcnow)
 
     def to_dict(self):
@@ -191,6 +192,8 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
+    external_login = db.Column(db.Integer, default=0, nullable=False)
+    api_key = db.Column(db.String(64), index=True, unique=False, nullable=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -204,3 +207,26 @@ class User(UserMixin, db.Model):
 @login.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+@login.request_loader
+def load_user_from_request(request):
+    # first, try to login using the api_key url arg
+    api_key = request.args.get('api_key')
+    if api_key:
+        user = User.query.filter_by(api_key=api_key).first()
+        if user:
+            return user
+    # next try SiteMinder
+    if 'Smuser' in request.headers and 'Mail' in request.headers:
+        username = request.headers.get('Smuser')
+        email = request.headers.get('Mail')
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            user = User(username=username, email=email, external_login=1)
+            user.set_password(os.urandom(12))
+            db.session.add(user)
+            db.session.commit()
+        return user
+    # finally, return None if both methods did not login the user
+    return None
+

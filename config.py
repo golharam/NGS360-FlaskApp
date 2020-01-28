@@ -19,7 +19,7 @@ class DefaultConfig:
     ''' Default config settings that can be overridden '''
     APP_NAME = "NGS360"
     SECRET_KEY = os.environ.get('SECRET_KEY') or "changeme"
-    PROJECTREGISTRY = os.environ.get("PROJECTREGISTRY") or None
+    PROJECTREGISTRY = os.environ.get("PROJECTREGISTRY_URL") or None
     TESTING = False
 
     # For production, define this to a production database

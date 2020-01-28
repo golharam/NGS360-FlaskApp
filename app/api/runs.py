@@ -34,7 +34,7 @@ from flask_restplus import Namespace, Resource
 # REST API Resource, SampleSheet
 from sample_sheet import SampleSheet as IlluminaSampleSheet
 
-from app import BOTO3 as boto3
+from app import BOTO3 as boto3, DB as db
 from app.models import SequencingRun
 from app.blueprints.aws_batch import submit_job
 
@@ -138,7 +138,7 @@ class Runs(Resource):
 
 @NS.route("/<sequencing_run_id>")
 class Run(Resource):
-    def get(sequencing_run_id):
+    def get(self, sequencing_run_id):
         run = SequencingRun.query.get(sequencing_run_id)
         if run:
             return jsonify(run.to_dict())
@@ -146,7 +146,7 @@ class Run(Resource):
 
 @NS.route("/<sequencing_run_id>/demultiplex")
 class DemultiplexRun(Resource):
-    def post(sequencing_run_id):
+    def post(self, sequencing_run_id):
         # user is required for _submitJob
         if request.json and 'user' in request.json:
             user = request.json['user']
@@ -201,7 +201,7 @@ class DemultiplexRun(Resource):
 # /api/v0/runs/<sequencing_run_id>/download_sample_sheet should redirect to here
 @NS.route("/<sequencing_run_id>/download_file")
 class DownloadFile(Resource):
-    def get(sequencing_run_id):
+    def get(self, sequencing_run_id):
         run = SequencingRun.query.get(sequencing_run_id)
         if not run:
             abort(404)
@@ -255,7 +255,7 @@ class SampleSheet(Resource):
 
 @NS.route("/<sequencing_run_id>/samples")
 class Samples(Resource):
-    def delete(sequencing_run_id):
+    def delete(self, sequencing_run_id):
         """
         This function and API endpoint delete samples (RunToSamples objects
         in the database) associated with a run.
@@ -294,7 +294,7 @@ class Samples(Resource):
         return jsonify({"Status": "OK", "Successful deletions": successful_deletions,
                         "Unsuccessful deletions": unsuccessful_deletions}), 200
 
-    def put(sequencing_run_id):
+    def put(self, sequencing_run_id):
         """
         Create a mapping between a run, an associated project, and associated
         samples by creating new objects in the RunToSamples table.
@@ -350,7 +350,7 @@ class Samples(Resource):
 
 @NS.route("/<sequencing_run_id>/upload_features_file")
 class UploadFeaturesFile(Resource):
-    def post(sequencing_run_id):
+    def post(self, sequencing_run_id):
         # Code from http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
         # check if the post request has the file part
         if 'file' not in request.files:
@@ -375,7 +375,7 @@ class UploadFeaturesFile(Resource):
 
 @NS.route("/<sequencing_run_id>/upload_sample_sheet")
 class UploadSampleSheet(Resource):
-    def post(sequencing_run_id):
+    def post(self, sequencing_run_id):
         # Code from http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
         # check if the post request has the file part
         if 'file' not in request.files:

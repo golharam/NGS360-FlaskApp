@@ -24,8 +24,18 @@ make - Run the app in Docker
 
 ## Development
 NGS360 uses 'A successful Git branching model' for development:
+  - master branch is the current production version
+  - develop branch is the active development version targetted for production
+
   - Feature branches are forked from the develop branch
-  - master branch is pushed into production
   - Branch names should be Jira ticket ids
 
 We also aim to achieve https://12factor.net
+
+## CI/CD Pipeline
+
+Jenkins handles the CI/CD pipeline.
+
+Deployment to elastic beanstalk is done using the deploy-eb branch, which sets up the elastic beanstalk environment.
+
+When a merge/commit is performed on the develop or master branch, Jenkins runs unit tests, the merges the branch with deploy-eb and deploys to ngsdev or ngsstaging.

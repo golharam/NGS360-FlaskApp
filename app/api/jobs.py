@@ -44,11 +44,11 @@ def get_log_events(log_group, log_stream_name):
 
 @NS.route("")
 class Jobs(Resource):
-    def get():
+    def get(self):
         jobs = BatchJob.query.all()
         return jsonify([job.to_dict() for job in jobs])
 
-    def post():
+    def post(self):
         # TODO: Secure with auth_tokens
         if not request.json:
             return '{"Status": "No JSON found"}', 200
@@ -67,7 +67,7 @@ class Jobs(Resource):
 
 @NS.route("/<string:jobid>")
 class Job(Resource):
-    def delete(jobid):
+    def delete(self, jobid):
         job = BatchJob.query.filter_by(id=jobid).first()
         if job:
             db.session.delete(job)
@@ -75,11 +75,11 @@ class Job(Resource):
             return '{"Status": "Deleted"}', 200
         return '{"Status": "Job does not exist"}', 200
 
-    def get(jobid):
+    def get(self, jobid):
         job = BatchJob.query.filter_by(id=jobid).first()
         return jsonify(job.to_dict()), 200
 
-    def put(jobid):
+    def put(self, jobid):
         '''
         Update job entry in database with new status and log_stream_name
         '''
@@ -110,7 +110,7 @@ class Job(Resource):
 
 @NS.route("<string:jobid>/log")
 class JobLog(Resource):
-    def get(jobid):
+    def get(self, jobid):
         job = BatchJob.query.filter_by(id=jobid).first()
         if not job:
             return jsonify(["Unknown job"]), 200
