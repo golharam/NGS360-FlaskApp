@@ -39,4 +39,4 @@ docker-shell:
 deploy-dev:
 	git add .ebextensions/
 	ebenv/bin/eb deploy NGS36-dev-12KQIJQV1IY5A --staged
-    git reset HEAD .ebextensions/
+	git reset HEAD .ebextensions/
