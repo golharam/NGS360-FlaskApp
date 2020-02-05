@@ -89,3 +89,17 @@ def show_project(projectid):
                            xpress_project_id=xpress_project_id,
                            runs=associated_runs)
 
+
+@BP.route("/run/files")
+@login_required
+def browse_sequencing_run_files():
+    ''' Show File Browser page '''
+    return render_template('main/file_browser.html')
+
+
+@BP.route("/project/files")
+@login_required
+def browse_project_files():
+    ''' Show File Browser page '''
+    return render_template('main/file_browser.html')
+

@@ -1,13 +1,14 @@
 '''
 NGS 360 Projects
 ----------------
-    HTTP    URI                             Action
-    ----    ---                             ------
-    GET     /api/v0/projects                Retrieve a list of projects
-    GET     /api/v0/projects/[project_id]   Retrieve a project
-    POST    /api/v0/projects                Create a new project
-    PUT     /api/v0/projects/[project_id]   Update an existing project
-    DELETE  /api/v0/projects/[project_id]   Delete a project (always return not authorized)
+    HTTP    URI                                   Action
+    ----    ---                                   ------
+    GET     /api/v0/projects                      Retrieve a list of projects
+    GET     /api/v0/projects/[project_id]         Retrieve a project
+    GET     /api/v0/projects/[project_id]/files   Retrieve files associated with project
+    POST    /api/v0/projects                      Create a new project
+    PUT     /api/v0/projects/[project_id]         Update an existing project
+    DELETE  /api/v0/projects/[project_id]         Delete a project (always return not authorized)
 '''
 from flask import request, abort, current_app, jsonify
 from flask_login import current_user
@@ -258,3 +259,24 @@ class exportSevenBridgesProjectByReference(Resource):
             }
         return submit_job(job_name, job_cmd, current_app.config['JOB_DEFINITION'], None,
                           current_user.username)
+
+@NS.route("/<projectid>/files")
+class ProjectFileList(Resource):
+    def get(self, projectid):
+        """
+        Rest API to retrieve and return list of files associated with
+        a project. This is gathered from an S3 endpoint using the
+        BMS Project ID.
+
+        :param projectid: BMS Project ID
+
+        :return associated_files: JSON object with the files associated
+        with this project
+        """
+        project = Project.query.get(projectid)
+        if project:
+            associated_files = {}
+            # TODO: Retrieve json object of associated files from S3
+
+        return associated_files
+

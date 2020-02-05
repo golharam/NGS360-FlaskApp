@@ -417,3 +417,24 @@ class UploadSampleSheet(Resource):
                         "is missing."
             flash(error_msg, 'danger')
         return 'OK', 200
+
+@NS.route("/<sequencing_run_id>/files")
+class SequencingRunFileList(Resource):
+    def get(self, sequencing_run_id):
+        """
+        Rest API to retrieve and return list of files associated with
+        a sequencing run. This is gathered from an S3 endpoint using the
+        Sequencing Run ID.
+
+        :param sequencing_run_id: Sequencing Run ID in NGS360 Database
+
+        :return associated_files: JSON object with the files associated
+        with this sequencing run
+        """
+        run = SequencingRun.query.get(sequencing_run_id)
+        if run:
+            associated_files = {}
+            # TODO: Retrieve json object of associated files from S3
+
+        return associated_files
+
