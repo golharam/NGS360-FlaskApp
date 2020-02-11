@@ -3,7 +3,7 @@
 <!-- Inspired by https://github.com/Wildog/flask-file-server/blob/master/templates/index.html -->
 
 <head>
-  <title>File System</title>
+  <title>File Browser</title>
   <link rel="stylesheet" href="{{url_for('static', filename='css/custom.css')}}">
   <link rel="stylesheet" href="{{url_for('static', filename='css/listr.pack.css')}}">
   <link rel="stylesheet" href="{{url_for('static', filename='css/jquery.filer.css')}}">
@@ -141,6 +141,12 @@
       </div>
     </div>
   </div>
+{% endblock %}
+
+{% block scripts %}
+  <script type="text/javascript">
+  </script>
+
   <script type="text/javascript" src="{{url_for('static', filename='js/jquery.min.js')}}"></script>
   <script type="text/javascript" src="{{url_for('static', filename='js/tether.min.js')}}"></script>
   <script type="text/javascript" src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
@@ -148,10 +154,5 @@
   <script type="text/javascript" src="{{url_for('static', filename='js/jquery.filer.min.js')}}"></script>
   <script type="text/javascript" src="{{url_for('static', filename='js/jquery.base64.min.js')}}"></script>
   <script type="text/javascript" src="{{url_for('static', filename='js/custom.js')}}"></script>
-{% endblock %}
-
-{% block scripts %}
-<script type="text/javascript">
-</script>
 {% endblock %}
 
