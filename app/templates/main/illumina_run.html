@@ -249,8 +249,8 @@
         });
 
         $(document).on('click', '.bfd-ok', function () {
-            if (uploadSampleSheet != null) {
-                uploadSampleSheet.doUpload("/api/v0/runs/{{runid}}/upload_features_file");
+            if (uploadFeaturesFile != null) {
+                uploadFeaturesFile.doUpload("/api/v0/runs/{{runid}}/upload_features_file");
             }
         });
         // End Upload features file functionality
