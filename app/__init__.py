@@ -91,7 +91,7 @@ def create_app(config_class=DefaultConfig):
     from app.blueprints.user import BP as user_bp
     app.register_blueprint(user_bp)
 
-    from app.blueprints.basespace import BP as basespace_bp
+    from app.blueprints import basespace_bp
     app.register_blueprint(basespace_bp)
 
     from app.blueprints.aws_batch import BP as aws_batch_bp
