@@ -42,30 +42,32 @@ class BaseSpace:
                 userid = response['Id']
         return userid
 
-    def get_runs(self):
-        """ Returns a list of runs """
+    def get_paginated_results(self, url):
         retval = []
-        if not self.userid:
-            return retval
-
         offset = 0
         while True:
-            url = '%s/users/%s/runs?Limit=1024&Offset=%s&access_token=%s' % (self.api_endpoint,
-                                                                             self.userid,
-                                                                             offset,
-                                                                             self.access_token)
-            data = get_json(url)
+            paginated_url = '%s?Limit=1024&Offset=%s&access_token=%s' % (url,
+                                                                         self.userid,
+                                                                         offset,
+                                                                         self.access_token)
+            data = get_json(paginated_url)
             if not data:
                 break
             response = data['Response']
-
-            runs = response['Items']
-            for run in runs:
-                retval.append(run)
+            items = response['Items']
+            for item in items:
+                retval.append(item)
             if response['DisplayedCount'] + offset == response['TotalCount']:
                 break
             offset += response['DisplayedCount']
         return retval
+
+    def get_runs(self):
+        """ Returns a list of runs """
+        if not self.userid:
+            return []
+        url = '%s/users/%s/runs' % (self.api_endpoint, self.userid)
+        return self.get_paginated_results(url)
 
     def get_projects(self):
         """
