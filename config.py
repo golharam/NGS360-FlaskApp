@@ -33,13 +33,15 @@ class DefaultConfig:
     BASESPACE_ENDPOINT = os.environ.get('BASESPACE_ENDPOINT') or None
     BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
 
+    BOTO3_REGION = os.environ.get('AWS_REGION') or None
+    BOTO3_SERVICES = ['batch', 'lambda', 'logs', 's3']
+
     SB_AUTH_TOKEN = os.environ.get('SB_AUTH_TOKEN') or None
 
     BCL2FASTQ_JOB = os.environ.get('BCL2FASTQ_JOB') or None
     BCL2FASTQ_QUEUE = os.environ.get('BCL2FASTQ_QUEUE') or None
     SCRNASEQ_LAMBDA_FN = os.environ.get('SCRNASEQ_LAMBDA_FN') or None
 
-    BOTO3_SERVICES = ['batch', 'lambda', 'logs', 's3']
 
     JOB_DEFINITION = os.environ.get('NGS_JOB') or None
     JOB_QUEUE = os.environ.get('NGS_JOB_QUEUE') or None
