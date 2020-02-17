@@ -38,5 +38,5 @@ docker-shell:
 
 deploy:
 	git add .ebextensions/
-	.ebenv/bin/eb deploy --staged
+	eb deploy --staged
 	git reset HEAD .ebextensions/
