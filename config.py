@@ -30,7 +30,9 @@ class DefaultConfig:
     FLASK_LOG_FILE = os.environ.get('FLASK_LOG_FILE') or None
     FLASK_LOG_LEVEL = os.environ.get('FLASK_LOG_LEVEL') or 'INFO'
 
+    BASESPACE_ENDPOINT = os.environ.get('BASESPACE_ENDPOINT') or None
     BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
+
     SB_AUTH_TOKEN = os.environ.get('SB_AUTH_TOKEN') or None
 
     BCL2FASTQ_JOB = os.environ.get('BCL2FASTQ_JOB') or None

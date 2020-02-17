@@ -1,5 +1,5 @@
 NAME=ngs360-flask
-.PHONY: clean install build lint test-frontend run shell docker-run docker-test docker-shell deploy-dev
+.PHONY: clean install build lint test-frontend run shell docker-run docker-test docker-shell deploy
 
 all: clean install test lint build
 
@@ -36,7 +36,7 @@ docker-run:
 docker-shell:
 	docker run --rm -ti -v $(PWD)/app.db:/app/app.db -v $(PWD)/app:/app/app -v $(PWD)/tests:/app/tests -p 5000:5000 $(NAME) /bin/bash
 
-deploy-dev:
+deploy:
 	git add .ebextensions/
-	.ebenv/bin/eb deploy NGS36-dev-12KQIJQV1IY5A --staged
+	eb deploy --staged
 	git reset HEAD .ebextensions/

@@ -18,90 +18,68 @@ def get_json(url):
 
 class BaseSpace:
     ''' Interface class to BaseSpace '''
-    def __init__(self,
-                 api_endpoint='http://api.basespace.illumina.com',
-                 api_endpoint_version='v1pre3',
-                 access_token=None):
-        self.api_endpoint = api_endpoint
-        self.api_endpoint_version = api_endpoint_version
-        self.base_url = '%s/%s' % (self.api_endpoint, self.api_endpoint_version)
-        self.access_token = access_token
-        self.userid = None
+    def __init__(self, api_endpoint=None, access_token=None):
         self.app = None
-        if access_token:
-            # This is needed because other calls rely on self.userid
-            self.get_user_id()
+        self.api_endpoint = api_endpoint
+        self.access_token = access_token
+        self.userid = self.get_user_id()
 
     def init_app(self, app):
         ''' Mimicks the init_app for Flask apps '''
         self.app = app
-        if 'BASESPACE_TOKEN' in app.config and app.config['BASESPACE_TOKEN']:
-            self.access_token = app.config['BASESPACE_TOKEN']
-            self.get_user_id()
+        self.api_endpoint = app.config.get('BASESPACE_ENDPOINT')
+        self.access_token = app.config.get('BASESPACE_TOKEN')
+        self.userid = self.get_user_id()
 
     def get_user_id(self):
         """ Return the current user's id """
-        self.app.logger.info("Attempting to deterimine userid...")
-        url = '%s/users/current?access_token=%s' % (self.base_url, self.access_token)
-        data = get_json(url)
-        if data and 'Response' in data:
-            response = data['Response']
-            self.userid = response['Id']
-        else:
-            self.userid = None
-        self.app.logger.info("userid is %s", self.userid)
-        return self.userid
+        userid = None
+        if self.api_endpoint and self.access_token:
+            url = '%s/users/current?access_token=%s' % (self.api_endpoint, self.access_token)
+            data = get_json(url)
+            if data and 'Response' in data:
+                response = data['Response']
+                userid = response['Id']
+        return userid
 
-    def get_runs(self):
-        """ Returns a list of runs """
+    def get_paginated_results(self, url):
         retval = []
-        if not self.userid:
-            return retval
-
+        limit = 1024
         offset = 0
         while True:
-            url = '%s/users/%s/runs?Limit=1024&Offset=%s&access_token=%s' % (self.base_url,
-                                                                             self.userid,
-                                                                             offset,
-                                                                             self.access_token)
-            data = get_json(url)
+            paginated_url = '%s?Limit=%s&Offset=%s&access_token=%s' % (url, limit, offset,
+                                                                       self.access_token)
+            data = get_json(paginated_url)
             if not data:
                 break
             response = data['Response']
-
-            runs = response['Items']
-            for run in runs:
-                retval.append(run)
+            items = response['Items']
+            for item in items:
+                retval.append(item)
             if response['DisplayedCount'] + offset == response['TotalCount']:
                 break
             offset += response['DisplayedCount']
         return retval
 
+    def get_runs(self):
+        """ Returns a list of runs """
+        if self.userid:
+            url = '%s/users/%s/runs' % (self.api_endpoint, self.userid)
+            runs = self.get_paginated_results(url)
+        else:
+            runs = []
+        return runs
+        
     def get_projects(self):
         """
         Returns a list of project.  Assumes get_user_id was called during initialization.
         """
-        retval = []
-        if not self.userid:
-            return retval
-        offset = 0
-        while True:
-            url = '%s/users/%s/projects?Limit=1024&Offset=%s&access_token=%s' % (self.base_url,
-                                                                                 self.userid,
-                                                                                 offset,
-                                                                                 self.access_token)
-            data = get_json(url)
-            if not data:
-                return ret_val
-            response = data['Response']
-
-            projects = response['Items']
-            for project in projects:
-                ret_val.append({'Name': project['Name'], 'Id': project['Id']})
-            if response['DisplayedCount'] + offset == response['TotalCount']:
-                break
-            offset += response['DisplayedCount']
-        return ret_val
+        if self.userid:
+            url = '%s/users/%s/runs' % (self.api_endpoint, self.userid)
+            projects = self.get_paginated_results(url)
+        else:
+            projects = []
+        return projects
 
     def get_project_id(self, project_name):
         """ Return a project's id based on its name """
