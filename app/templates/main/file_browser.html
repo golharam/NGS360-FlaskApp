@@ -12,15 +12,6 @@
 {% block body %}
   <div class="container">
     <div class="row">
-      <div class="col-xs-12">
-        <ol class="breadcrumb" dir="ltr">
-            <li class="breadcrumb-item"><a href="{{url_for('path_view')}}"><i class="fa fa-fw fa-home fa-lg"></i> </a></li>
-            {% for part in path.strip('/').split('/') %}
-            <li class="breadcrumb-item"><a href="{{url_for('path_view', p='/'+path[:path.find(part)+part|length]+'/')}}"><strong>{{ part }}</strong></a></li>
-            {% endfor %}
-             <li class="login"><a data-toggle="modal" data-target="#login-modal" class="btn btn-secondary text-muted"><i class="fa fa-fw fa-user"></i><strong id="userlogin">Login</strong></a></li>
-        </ol>
-      </div>
       <div class="col-xs-12 col-sm-5 col-md-4 col-sm-offset-7 col-md-offset-8 pull-sm-right">
         <div class="form-group">
             <label class="form-control-label sr-only" for="listr-search">Search</label>
@@ -50,27 +41,30 @@
         <tfoot>
           <tr>
             <td colspan="3">
-                <small class="pull-xs-left text-muted" dir="ltr">{{total.dir}} folders and {{total.file}} files, {{total.size | size_fmt}} in total</small>
             </td>
           </tr>
         </tfoot>
         <tbody>
-          {% for entry in contents if entry.type == 'dir' %}
-          <tr>
-              <td class="text-xs-left " data-sort-value="dir-{{entry.name | lower}}"><i class="fa fa-fw fa-folder " aria-hidden="true"></i>&nbsp;<a href="{{entry.name}}/" ><strong>{{entry.name}}</strong></a></td>
-            <td class="text-xs-right " data-sort-value="-1">&mdash;</td>
-            <td class="text-xs-right " data-sort-value="{{entry.mtime}}" title="{{entry.mtime | time_fmt}}">{{entry.mtime | humanize}}</td>
-          </tr>
-          {% endfor %}
-          {% for entry in contents if entry.type == 'file' %}
-          <tr>
-              <td class="text-xs-left " data-sort-value="file-{{entry.name | lower}}"><i class="fa fa-fw {{entry.name | icon_fmt}} " aria-hidden="true"></i>&nbsp;
-              <a {% if entry.name | data_fmt not in ['unknown', 'archive'] %} data-toggle="modal" data-target="#viewer-modal" data-type="{{entry.name | data_fmt}}" {% endif %} href="{{entry.name}}" data-size="{{entry.size | size_fmt}}">{{entry.name}}</a>
-              </td>
-              <td class="text-xs-right " data-sort-value="{{entry.size}}" title="{{entry.size}} bytes">{{entry.size | size_fmt}}</td>
-              <td class="text-xs-right " data-sort-value="{{entry.mtime}}" title="{{entry.mtime | time_fmt}}">{{entry.mtime | humanize}}</td>
-          </tr>
-          {% endfor %}
+          {% if 'directories' in filesystem_dict %}
+            {% for entry in filesystem_dict.directories %}
+              <tr>
+                <td class="text-xs-left " data-sort-value="dir-{{entry.name | lower}}"><i class="fa fa-fw fa-folder " aria-hidden="true"></i>&nbsp;<a href="{{entry.name}}/" ><strong>{{entry.name}}</strong></a></td>
+                <td class="text-xs-right " data-sort-value="-1">&mdash;</td>
+                <td class="text-xs-right " data-sort-value="{{entry.mtime}}" title="{{entry.mtime}}">{{entry.mtime}}</td>
+              </tr>
+            {% endfor %}
+          {% endif %}
+          {% if 'files' in filesystem_dict %}
+            {% for entry in filesystem_dict.files %}
+              <tr>
+                <td class="text-xs-left " data-sort-value="file-{{entry.name | lower}}"><i class="fa fa-fw {{entry.name}} " aria-hidden="true"></i>&nbsp;
+                <a {% if entry.name %} data-toggle="modal" data-target="#viewer-modal" data-type="{{entry.name}}" {% endif %} href="{{entry.name}}" data-size="{{entry.size}}">{{entry.name}}</a>
+                </td>
+                <td class="text-xs-right " data-sort-value="{{entry.size}}" title="{{entry.size}} bytes">{{entry.size}}</td>
+                <td class="text-xs-right " data-sort-value="{{entry.mtime}}" title="{{entry.mtime}}">{{entry.mtime}}</td>
+              </tr>
+            {% endfor %}
+          {% endif %}
         </tbody>
       </table>
     </div>
