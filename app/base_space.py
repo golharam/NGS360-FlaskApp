@@ -44,12 +44,11 @@ class BaseSpace:
 
     def get_paginated_results(self, url):
         retval = []
+        limit = 1024
         offset = 0
         while True:
-            paginated_url = '%s?Limit=1024&Offset=%s&access_token=%s' % (url,
-                                                                         self.userid,
-                                                                         offset,
-                                                                         self.access_token)
+            paginated_url = '%s?Limit=%s&Offset=%s&access_token=%s' % (url, limit, offset,
+                                                                       self.access_token)
             data = get_json(paginated_url)
             if not data:
                 break
@@ -64,36 +63,23 @@ class BaseSpace:
 
     def get_runs(self):
         """ Returns a list of runs """
-        if not self.userid:
-            return []
-        url = '%s/users/%s/runs' % (self.api_endpoint, self.userid)
-        return self.get_paginated_results(url)
-
+        if self.userid:
+            url = '%s/users/%s/runs' % (self.api_endpoint, self.userid)
+            runs = self.get_paginated_results(url)
+        else:
+            runs = []
+        return runs
+        
     def get_projects(self):
         """
         Returns a list of project.  Assumes get_user_id was called during initialization.
         """
-        retval = []
-        if not self.userid:
-            return retval
-        offset = 0
-        while True:
-            url = '%s/users/%s/projects?Limit=1024&Offset=%s&access_token=%s' % (self.api_endpoint,
-                                                                                 self.userid,
-                                                                                 offset,
-                                                                                 self.access_token)
-            data = get_json(url)
-            if not data:
-                return ret_val
-            response = data['Response']
-
-            projects = response['Items']
-            for project in projects:
-                ret_val.append({'Name': project['Name'], 'Id': project['Id']})
-            if response['DisplayedCount'] + offset == response['TotalCount']:
-                break
-            offset += response['DisplayedCount']
-        return ret_val
+        if self.userid:
+            url = '%s/users/%s/runs' % (self.api_endpoint, self.userid)
+            projects = self.get_paginated_results(url)
+        else:
+            projects = []
+        return projects
 
     def get_project_id(self, project_name):
         """ Return a project's id based on its name """
