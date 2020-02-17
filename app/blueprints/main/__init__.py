@@ -90,14 +90,28 @@ def show_project(projectid):
                            runs=associated_runs)
 
 
-@BP.route("/run/files")
+@BP.route("/illumina_run/<runid>/files")
 @login_required
-def browse_sequencing_run_files():
+def browse_sequencing_run_files(runid):
     ''' Show File Browser page '''
-    return render_template('main/file_browser.html')
+
+    # sample_filesystem based on sample filesystem at:
+    # https://realpython.com/working-with-files-in-python/
+    # Any filesystem should be able to be converted to this type
+    # of data structure
+    sample_filesystem = {
+        'directories': [
+            {'name': 'sub_dir_a', 'files': [{'name': 'bar.py', 'date': '', 'size': '76KB'}, {'name': 'foo.py', 'date': '', 'size': '76KB'}]},
+            {'name': 'sub_dir_b', 'files': [{'name': 'file4.txt', 'date': '', 'size': '76KB'}]},
+            {'name': 'sub_dir_c', 'subdirectories': [{'name': 'sub_dir_c1', 'files': [{'name': 'file6.txt', 'date': '', 'size': '76KB'}, {'name': 'file7.csv', 'date': '', 'size': '76KB'}]}], 'files': [{'name': 'config.py', 'date': '', 'size': '76KB'}, {'name': 'file5.txt', 'date': '', 'size': '76KB'}]},
+        ],
+        'files': [{'name': 'file1.py', 'date': '', 'size': '76KB'}, {'name': 'file2.csv', 'date': '', 'size': '76KB'}, {'name': 'file3.txt', 'date': '', 'size': '76KB'}]
+    }
+
+    return render_template('main/file_browser.html', filesystem_dict=sample_filesystem)
 
 
-@BP.route("/project/files")
+@BP.route("/projects/<projectid>/files")
 @login_required
 def browse_project_files():
     ''' Show File Browser page '''
