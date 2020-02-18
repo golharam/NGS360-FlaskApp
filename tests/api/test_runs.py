@@ -2,6 +2,7 @@
 Test /api/v0/runs endpoint
 '''
 import datetime
+from io import BytesIO
 import unittest
 from unittest import TestCase
 from moto import mock_s3
@@ -56,6 +57,42 @@ class RunsTests(TestCase):
         response = self.client.get('/api/v0/runs/1/file?file=nofile')
         assert response.status_code == 404
 
+    @mock_s3
+    def test_upload_file(self):
+        ''' Test POST /<sequencing_run_id>/file works '''
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
+                            run_number='1', flowcell_id='000000001',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        db.session.commit()
+
+        boto3.resources['s3'].create_bucket(Bucket='somebucket')
+
+        # Test if we don't provide a file, the response is http 200, but nothing should happen
+        response = self.client.post('/api/v0/runs/1/file')
+        assert response.json == 'No file provided'
+
+        # Test to make sure we are posting with a filename
+        files = {"file": (open("test_data/SampleSheet.csv", 'rb'), '')}
+        response = self.client.post('/api/v0/runs/1/file', data=files, content_type='multipart/form-data')
+        assert response.json == 'No selected file'
+
+        # Test uploading non-sample sheet doesn't get accepted
+        files = {"file": (BytesIO(b'asdf'), 'SampleSheet.csv')}
+        response = self.client.post('/api/v0/runs/1/file', data=files, content_type='multipart/form-data')
+        assert response.json == 'Invalid sample sheet'
+
+        # Test to make sure we are using an existing run
+        files = {"file": (open("test_data/SampleSheet.csv", 'rb'))}
+        response = self.client.post('/api/v0/runs/2/file', data=files, content_type='multipart/form-data')
+        assert response.status_code == 404
+
+        # Test that we can upload a file
+        files = {"file": (open("test_data/SampleSheet.csv", 'rb'), 'SampleSheet.csv')}
+        response = self.client.post('/api/v0/runs/1/file', data=files, content_type='multipart/form-data')
+        assert response.json == 'File, SampleSheet.csv, uploaded'
 
     def test_get_runs(self):
         run_date = datetime.date(2019, 1, 10)

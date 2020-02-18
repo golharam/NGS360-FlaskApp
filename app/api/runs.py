@@ -12,9 +12,6 @@ HTTP URI                                                       Action           
 ---- ---                                                       ------                                  -----------
 GET    /api/v0/runs/[id]                                       Retrieve info about a specific run      get_run(id)
 GET    /api/v0/runs/[id]/sample_sheet                          Retrieve the sample sheet for the run   get_run_sample_sheet(id)
-GET    /api/v0/runs/[id]/download_file?file=<file_to_download> Download a file                         download_file(id, file)
-POST   /api/v0/runs/[id]/upload_features_file                                                          upload_features_file(sequencing_run_id)
-POST   /api/v0/runs/[id]/upload_sample_sheet                                                           upload_sample_sheet(sequencing_run_id)
 PUT    /api/v0/runs/[id]/samples                               Map samples to an existing run          put_samples(id)
 DELETE /api/v0/runs/[id]/samples                               Delete samples associated with run      delete_samples(id)
 POST   /api/v0/runs/[id]/demultiplex                                                                   demultiplex(id)
@@ -331,76 +328,6 @@ class Samples(Resource):
             return jsonify({"Status": "Internal Server Error",
                             "Message": "Run to Samples mappings could not be saved"}), 500
 
-@NS.route("/<sequencing_run_id>/upload_features_file")
-class UploadFeaturesFile(Resource):
-    def post(self, sequencing_run_id):
-        # Code from http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file provided', 'danger')
-            return 'OK', 200
-
-        file = request.files['file']
-        # if user does not select file, browser also submit an empty part without filename
-        if file.filename == '':
-            flash('No selected file', 'danger')
-            return 'OK', 200
-
-        run = SequencingRun.query.get(sequencing_run_id)
-        if not run:
-            abort(404)
-        features_file = "%s/features.csv" % run.s3_run_folder_path
-        bucket, key = find_bucket_key(features_file)
-        boto3.clients['s3'].put_object(Body=file, Bucket=bucket, Key=key,
-                                       ServerSideEncryption='AES256')
-        flash('File uploaded', 'success')
-        return 'OK', 200
-
-@NS.route("/<sequencing_run_id>/upload_sample_sheet")
-class UploadSampleSheet(Resource):
-    def post(self, sequencing_run_id):
-        # Code from http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            flash('No file provided', 'danger')
-            return 'OK', 200
-
-        file = request.files['file']
-        # if user does not select file, browser also submit an empty part without filename
-        if file.filename == '':
-            flash('No selected file', 'danger')
-            return 'OK', 200
-
-        # Make sure samplesheet is a valid samplesheet
-        # TODO: Simpilfy this code to use sample-sheet package.  If sample-sheet can read/parse
-        # the sample sheet, then consider it valid.   Need to upgrade to Python3 for sample-sheet.
-        (header, reads, settings, data) = (False, False, False, False)
-        for line in file:
-            if line.startswith('[Header]'):
-                header = True
-            if line.startswith('[Reads]'):
-                reads = True
-            if line.startswith('[Settings]'):
-                settings = True
-            if line.startswith('[Data]'):
-                data = True
-        file.seek(0)
-
-        if header and reads and settings and data:
-            run = SequencingRun.query.get(sequencing_run_id)
-            if not run:
-                abort(404)
-            sample_sheet = "%s/SampleSheet.csv" % run.s3_run_folder_path
-            bucket, key = find_bucket_key(sample_sheet)
-            boto3.clients['s3'].put_object(Body=file, Bucket=bucket, Key=key,
-                                           ServerSideEncryption='AES256')
-            flash('Sample sheet uploaded', 'success')
-        else:
-            error_msg = "Invalid sample sheet. Header, Reads, Settings and/or Data section " + \
-                        "is missing."
-            flash(error_msg, 'danger')
-        return 'OK', 200
-
 @NS.route("/<sequencing_run_id>/file")
 class SequencingRunFile(Resource):
     def get(self, sequencing_run_id):
@@ -425,31 +352,38 @@ class SequencingRunFile(Resource):
         current_app.logger.warning("Requested file, %s, not found", request.args.get('file'))
         abort(404)
 
-    def put(self, sequencing_run_id):
+    def post(self, sequencing_run_id):
         ''' Upload file '''
         # Code from http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
         # check if the post request has the file part
         if 'file' not in request.files:
             flash('No file provided', 'danger')
-            return 'OK', 200
+            return 'No file provided', 200
 
         # if user does not select file, browser also submit an empty part without filename
         uploaded_file = request.files['file']
-        if uploaded_file.filename == '':
+        if uploaded_file.filename is None or uploaded_file.filename == '':
             flash('No selected file', 'danger')
-            return 'OK', 200
+            return 'No selected file', 200
 
-        # make sure the user provided a filename to save as
-        if request.args.get('file') is None:
-            current_app.logger.warning("No file specified")
-            abort(400)
+        if uploaded_file.filename == 'SampleSheet.csv':
+            content = uploaded_file.read()
+            try:
+                IlluminaSampleSheet(BytesIO(content))
+            except:
+                current_app.logger.warning("Failed to read sample sheet: %s", content)
+                error_msg = "Invalid sample sheet"
+                flash(error_msg, 'danger')
+                return error_msg, 200
 
+        # make sure the run exists in the database
         run = SequencingRun.query.get(sequencing_run_id)
         if not run:
             abort(404)
-    
-        bucket, key = find_bucket_key("%s/%s" % (run.s3_run_folder_path, request.args.get('file')))
-        boto3.clients['s3'].put_object(Body=file, Bucket=bucket, Key=key,
-                                       ServerSideEncryption='AES256')
-        flash('File uploaded', 'success')
-        return 'OK', 200
+
+        bucket, key = find_bucket_key("%s/%s" % (run.s3_run_folder_path, uploaded_file.filename))
+        boto3.clients['s3'].put_object(Body=uploaded_file, Bucket=bucket, Key=key,
+                                    ServerSideEncryption='AES256')
+        message = "File, %s, uploaded" % uploaded_file.filename
+        flash(message, 'success')
+        return message, 200
