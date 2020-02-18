@@ -13,18 +13,6 @@
     <div class="progressStatus hide"></div>
 </div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
 <span class="actions" style="float: right;">
     <span class="dropdown">
       <button class="btn btn-success btn-sm dropdown-toggle" id="download" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -32,8 +20,8 @@
         <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" aria-labelledby="download">
-        <li><a href="/api/v0/runs/{{runid}}/download_file?file=SampleSheet.csv">SampleSheet.csv</a></li>
-        <li><a href="/api/v0/runs/{{runid}}/download_file?file=RunParameters.xml">RunParameters.xml</a></li>
+        <li><a href="/api/v0/runs/{{runid}}/file?file=SampleSheet.csv">SampleSheet.csv</a></li>
+        <li><a href="/api/v0/runs/{{runid}}/file?file=runParameters.xml">RunParameters.xml</a></li>
       </ul>
     </span>
 
@@ -142,8 +130,11 @@
         console.log("Running illumina_run::ready()")
         // Begin Upload functionality
         // https://stackoverflow.com/questions/2320069/jquery-ajax-file-upload
-        var Upload = function (file) {
+        var Upload = function (file, filename) {
+            // file contains file.name, which is the client side name.
             this.file = file;
+            // filename represents what we want the server to call it.
+            this.filename = filename
         };
         Upload.prototype.getType = function() {
             return this.file.type;
@@ -159,8 +150,8 @@
             var formData = new FormData();
 
             // add assoc key values, this will be posts values
-            formData.append("file", this.file, this.getName());
-            formData.append("upload_file", true);
+            formData.append("file", this.file);
+            formData.append("filename", this.filename);
 
             $('.progressStatus').removeClass('hide');
 
@@ -217,7 +208,7 @@
                 else if (ev.files.length == 1) {
                     // There is limited checking I can do to ensure the file being uploaded is a text/csv from Windows.
                     // I will accept the upload here and parse it on the server to be sure its correct.
-                    uploadSampleSheet = new Upload(ev.files[0]);
+                    uploadSampleSheet = new Upload(ev.files[0], 'SampleSheet.csv');
                 } else {
                     alert("You can only upload 1 file.");
                 }
@@ -226,7 +217,7 @@
 
         $(document).on('click', '.bfd-ok', function () {
             if (uploadSampleSheet != null) {
-                uploadSampleSheet.doUpload("/api/v0/runs/{{runid}}/upload_sample_sheet");
+                uploadSampleSheet.doUpload("/api/v0/runs/{{runid}}/file");
             }
         });
         // End Upload Samplesheet functionality
@@ -241,7 +232,7 @@
                 else if (ev.files.length == 1) {
                     // There is limited checking I can do to ensure the file being uploaded is a text/csv from Windows.
                     // I will accept the upload here and parse it on the server to be sure its correct.
-                    uploadFeaturesFile = new Upload(ev.files[0]);
+                    uploadFeaturesFile = new Upload(ev.files[0], 'features.csv');
                 } else {
                     alert("You can only upload 1 file.");
                 }
@@ -250,7 +241,7 @@
 
         $(document).on('click', '.bfd-ok', function () {
             if (uploadFeaturesFile != null) {
-                uploadFeaturesFile.doUpload("/api/v0/runs/{{runid}}/upload_features_file");
+                uploadFeaturesFile.doUpload("/api/v0/runs/{{runid}}/file");
             }
         });
         // End Upload features file functionality
