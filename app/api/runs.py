@@ -383,7 +383,7 @@ class SequencingRunFile(Resource):
 
         bucket, key = find_bucket_key("%s/%s" % (run.s3_run_folder_path, uploaded_file.filename))
         boto3.clients['s3'].put_object(Body=uploaded_file, Bucket=bucket, Key=key,
-                                    ServerSideEncryption='AES256')
+                                       ServerSideEncryption='AES256')
         message = "File, %s, uploaded" % uploaded_file.filename
         flash(message, 'success')
         return message, 200
