@@ -358,32 +358,32 @@ class SequencingRunFile(Resource):
         # check if the post request has the file part
         if 'file' not in request.files:
             flash('No file provided', 'danger')
-            return 'No file provided', 200
+            return {"status": 'No file provided'}
+        if 'filename' not in request.values:
+            flash('No filename provided', 'danger')
+            return {"status": 'No filename provided'}
 
         # if user does not select file, browser also submit an empty part without filename
         uploaded_file = request.files['file']
         if uploaded_file.filename is None or uploaded_file.filename == '':
             flash('No selected file', 'danger')
-            return 'No selected file', 200
+            return {"status": "No selected file"}
         content = uploaded_file.read()
 
-        if uploaded_file.filename == 'SampleSheet.csv':
+        if request.values['filename'] == 'SampleSheet.csv':
             try:
                 IlluminaSampleSheet(BytesIO(content))
             except:
-                current_app.logger.warning("Failed to read sample sheet: %s", content)
-                error_msg = "Invalid sample sheet"
-                flash(error_msg, 'danger')
-                return error_msg, 200
+                flash("Invalid sample sheet", 'danger')
+                return {"status": "Invalid sample sheet"}
 
         # make sure the run exists in the database
         run = SequencingRun.query.get(sequencing_run_id)
         if not run:
             abort(404)
 
-        bucket, key = find_bucket_key("%s/%s" % (run.s3_run_folder_path, uploaded_file.filename))
-        boto3.clients['s3'].put_object(Body=uploaded_file, Bucket=bucket, Key=key,
+        bucket, key = find_bucket_key("%s/%s" % (run.s3_run_folder_path, request.values['filename']))
+        boto3.clients['s3'].put_object(Body=content, Bucket=bucket, Key=key,
                                        ServerSideEncryption='AES256')
-        message = "File, %s, uploaded" % uploaded_file.filename
-        flash(message, 'success')
-        return message, 200
+        flash("File, %s, uploaded" % uploaded_file.filename, 'info')
+        return {"status": "File, %s, uploaded" % uploaded_file.filename}

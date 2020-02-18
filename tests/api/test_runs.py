@@ -70,29 +70,12 @@ class RunsTests(TestCase):
 
         boto3.resources['s3'].create_bucket(Bucket='somebucket')
 
-        # Test if we don't provide a file, the response is http 200, but nothing should happen
-        response = self.client.post('/api/v0/runs/1/file')
-        assert response.json == 'No file provided'
-
-        # Test to make sure we are posting with a filename
-        files = {"file": (open("test_data/SampleSheet.csv", 'rb'), '')}
+        files = {"file": (open("test_data/SampleSheet.csv", 'rb'), 'SampleSheet.csv'),
+                 "filename": "SampleSheet.csv"
+                }
         response = self.client.post('/api/v0/runs/1/file', data=files, content_type='multipart/form-data')
-        assert response.json == 'No selected file'
+        assert response.json['status'] == 'File, SampleSheet.csv, uploaded'
 
-        # Test uploading non-sample sheet doesn't get accepted
-        files = {"file": (BytesIO(b'asdf'), 'SampleSheet.csv')}
-        response = self.client.post('/api/v0/runs/1/file', data=files, content_type='multipart/form-data')
-        assert response.json == 'Invalid sample sheet'
-
-        # Test to make sure we are using an existing run
-        files = {"file": (open("test_data/SampleSheet.csv", 'rb'))}
-        response = self.client.post('/api/v0/runs/2/file', data=files, content_type='multipart/form-data')
-        assert response.status_code == 404
-
-        # Test that we can upload a file
-        files = {"file": (open("test_data/SampleSheet.csv", 'rb'), 'SampleSheet.csv')}
-        response = self.client.post('/api/v0/runs/1/file', data=files, content_type='multipart/form-data')
-        assert response.json == 'File, SampleSheet.csv, uploaded'
 
     def test_get_runs(self):
         run_date = datetime.date(2019, 1, 10)
