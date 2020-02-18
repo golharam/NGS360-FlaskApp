@@ -25,7 +25,7 @@ class RunsTests(TestCase):
 
     @mock_s3
     def test_download_file(self):
-        ''' Test /<sequencing_run_id>/download_file works '''
+        ''' Test GET /<sequencing_run_id>/file works '''
         run_date = datetime.date(2019, 1, 10)
         run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
                             run_number='1', flowcell_id='000000001',
@@ -39,21 +39,21 @@ class RunsTests(TestCase):
                                         Bucket='somebucket',
                                         Key="/PHIX3_test/SampleSheet.csv")
 
-        # Test if we don't provide a run, the response is http 400
-        response = self.client.get('/api/v0/runs/1/download_file')
+        # Test if we don't provide a file, the response is http 400
+        response = self.client.get('/api/v0/runs/1/file')
         assert response.status_code == 400
 
         # Test if we don't provide a valid run, the response is http 404
-        response = self.client.get('/api/v0/runs/2/download_file?file=SampleSheet.csv')
+        response = self.client.get('/api/v0/runs/2/file?file=SampleSheet.csv')
         assert response.status_code == 404
 
         # Test we can download a file
-        response = self.client.get('/api/v0/runs/1/download_file?file=SampleSheet.csv')
+        response = self.client.get('/api/v0/runs/1/file?file=SampleSheet.csv')
         # Check
         assert response.status_code == 200
 
         # Test if we don't provide a valid file, the response is http 404
-        response = self.client.get('/api/v0/runs/1/download_file?file=nofile')
+        response = self.client.get('/api/v0/runs/1/file?file=nofile')
         assert response.status_code == 404
 
 

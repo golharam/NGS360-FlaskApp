@@ -18,7 +18,7 @@ POST   /api/v0/runs/[id]/upload_sample_sheet                                    
 PUT    /api/v0/runs/[id]/samples                               Map samples to an existing run          put_samples(id)
 DELETE /api/v0/runs/[id]/samples                               Delete samples associated with run      delete_samples(id)
 POST   /api/v0/runs/[id]/demultiplex                                                                   demultiplex(id)
-GET    /api/v0/runs/[id]/metrics                               Retrieve demux metrics from Stat.json   get_metrics(id)
+GET    /api/v0/runs/[id]/metrics                               Retrieve demux metrics from Stat.json   SequencingRunMetrics::get
 
 '''
 import datetime
@@ -198,30 +198,6 @@ class DemultiplexRun(Resource):
             }
 
         return submit_job(job_name, container_overrides, batch_job, job_q, user)
-
-# /api/v0/runs/<sequencing_run_id>/download_sample_sheet should redirect to here
-@NS.route("/<sequencing_run_id>/download_file")
-class DownloadFile(Resource):
-    def get(self, sequencing_run_id):
-        if request.args.get('file') is None:
-            current_app.logger.warning("No file requested from run %s", sequencing_run_id)
-            abort(400)
-
-        run = SequencingRun.query.get(sequencing_run_id)
-        if not run:
-            current_app.logger.warning("Run %d not found", sequencing_run_id)
-            abort(404)
-
-        s3_file_path = "%s/%s" % (run.s3_run_folder_path, request.args.get('file'))
-        bucket, key = find_bucket_key(s3_file_path)
-        if access(bucket, key):
-            data = boto3.clients['s3'].get_object(Bucket=bucket, Key=key)
-            content = data['Body'].read()
-            content_io = BytesIO(content)
-            return send_file(content_io, mimetype="text/plain", as_attachment=True,
-                             attachment_filename=request.args.get('file'))
-        current_app.logger.warning("Requested file, %s, not found", request.args.get('file'))
-        abort(404)
 
 @NS.route("/<sequencing_run_id>/metrics")
 class SequencingRunMetrics(Resource):
@@ -423,4 +399,57 @@ class UploadSampleSheet(Resource):
             error_msg = "Invalid sample sheet. Header, Reads, Settings and/or Data section " + \
                         "is missing."
             flash(error_msg, 'danger')
+        return 'OK', 200
+
+@NS.route("/<sequencing_run_id>/file")
+class SequencingRunFile(Resource):
+    def get(self, sequencing_run_id):
+        ''' Download file '''
+        if request.args.get('file') is None:
+            current_app.logger.warning("No file requested from run %s", sequencing_run_id)
+            abort(400)
+
+        run = SequencingRun.query.get(sequencing_run_id)
+        if not run:
+            current_app.logger.warning("Run %d not found", sequencing_run_id)
+            abort(404)
+
+        s3_file_path = "%s/%s" % (run.s3_run_folder_path, request.args.get('file'))
+        bucket, key = find_bucket_key(s3_file_path)
+        if access(bucket, key):
+            data = boto3.clients['s3'].get_object(Bucket=bucket, Key=key)
+            content = data['Body'].read()
+            content_io = BytesIO(content)
+            return send_file(content_io, mimetype="text/plain", as_attachment=True,
+                             attachment_filename=request.args.get('file'))
+        current_app.logger.warning("Requested file, %s, not found", request.args.get('file'))
+        abort(404)
+
+    def put(self, sequencing_run_id):
+        ''' Upload file '''
+        # Code from http://flask.pocoo.org/docs/1.0/patterns/fileuploads/
+        # check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file provided', 'danger')
+            return 'OK', 200
+
+        # if user does not select file, browser also submit an empty part without filename
+        uploaded_file = request.files['file']
+        if uploaded_file.filename == '':
+            flash('No selected file', 'danger')
+            return 'OK', 200
+
+        # make sure the user provided a filename to save as
+        if request.args.get('file') is None:
+            current_app.logger.warning("No file specified")
+            abort(400)
+
+        run = SequencingRun.query.get(sequencing_run_id)
+        if not run:
+            abort(404)
+    
+        bucket, key = find_bucket_key("%s/%s" % (run.s3_run_folder_path, request.args.get('file')))
+        boto3.clients['s3'].put_object(Body=file, Bucket=bucket, Key=key,
+                                       ServerSideEncryption='AES256')
+        flash('File uploaded', 'success')
         return 'OK', 200
