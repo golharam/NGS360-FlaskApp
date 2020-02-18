@@ -365,9 +365,9 @@ class SequencingRunFile(Resource):
         if uploaded_file.filename is None or uploaded_file.filename == '':
             flash('No selected file', 'danger')
             return 'No selected file', 200
+        content = uploaded_file.read()
 
         if uploaded_file.filename == 'SampleSheet.csv':
-            content = uploaded_file.read()
             try:
                 IlluminaSampleSheet(BytesIO(content))
             except:
