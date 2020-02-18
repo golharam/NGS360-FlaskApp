@@ -23,6 +23,7 @@ GET    /api/v0/runs/[id]/metrics                               Retrieve demux me
 '''
 import datetime
 import json
+from io import BytesIO
 
 import botocore
 
@@ -202,8 +203,13 @@ class DemultiplexRun(Resource):
 @NS.route("/<sequencing_run_id>/download_file")
 class DownloadFile(Resource):
     def get(self, sequencing_run_id):
+        if request.args.get('file') is None:
+            current_app.logger.warning("No file requested from run %s", sequencing_run_id)
+            abort(400)
+
         run = SequencingRun.query.get(sequencing_run_id)
         if not run:
+            current_app.logger.warning("Run %d not found", sequencing_run_id)
             abort(404)
 
         s3_file_path = "%s/%s" % (run.s3_run_folder_path, request.args.get('file'))
@@ -211,9 +217,10 @@ class DownloadFile(Resource):
         if access(bucket, key):
             data = boto3.clients['s3'].get_object(Bucket=bucket, Key=key)
             content = data['Body'].read()
-            content_io = ByteIO(content)
+            content_io = BytesIO(content)
             return send_file(content_io, mimetype="text/plain", as_attachment=True,
                              attachment_filename=request.args.get('file'))
+        current_app.logger.warning("Requested file, %s, not found", request.args.get('file'))
         abort(404)
 
 @NS.route("/<sequencing_run_id>/metrics")

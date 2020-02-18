@@ -93,7 +93,7 @@ def create_app(config_class=DefaultConfig):
             mail_handler.setLevel(logging.ERROR)
             app.logger.addHandler(mail_handler)
 
-    from app.blueprints.main import BP as main_bp
+    from app.blueprints import main_bp
     app.register_blueprint(main_bp)
 
     from app.api import BLUEPRINT as api_bp
@@ -105,7 +105,7 @@ def create_app(config_class=DefaultConfig):
     from app.blueprints import basespace_bp
     app.register_blueprint(basespace_bp)
 
-    from app.blueprints.aws_batch import BP as aws_batch_bp
+    from app.blueprints import aws_batch_bp
     app.register_blueprint(aws_batch_bp)
 
     app.logger.info('%s loaded.', app.config['APP_NAME'])
