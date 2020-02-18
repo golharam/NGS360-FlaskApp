@@ -28,7 +28,8 @@ build:
 	docker build -t $(NAME) .
 
 docker-test: build
-	docker run --rm -ti $(NAME) ./test.sh
+	rm -rf htmlcov 2>/dev/null
+	docker run --rm -ti -v $(PWD)/htmlcov:/app/htmlcov $(NAME) ./test.sh
 
 docker-run:
 	docker run --rm -ti -v $(PWD)/app.db:/app/app.db -v $(PWD)/app:/app/app -v $(PWD)/tests:/app/tests -p 5000:5000 -e FLASK_ENV=development $(NAME)
