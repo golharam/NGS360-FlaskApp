@@ -260,15 +260,16 @@ class exportSevenBridgesProjectByReference(Resource):
         return submit_job(job_name, job_cmd, current_app.config['JOB_DEFINITION'], None,
                           current_user.username)
 
-@NS.route("/<projectid>/files")
-class ProjectFileList(Resource):
-    def get(self, projectid):
+@NS.route("/files/<bucket>/<path>")
+class Files(Resource):
+    def get(self, bucket, path):
         """
         Rest API to retrieve and return list of files associated with
         a project. This is gathered from an S3 endpoint using the
         BMS Project ID.
 
-        :param projectid: BMS Project ID
+        :param bucket: S3 Bucket
+        :param path: Root path in bucket
 
         :return associated_files: JSON object with the files associated
         with this project
