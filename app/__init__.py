@@ -27,6 +27,14 @@ BOTO3 = Boto3()
 LOGINMANAGER = LoginManager()
 SEVENBRIDGES = SevenBridges()
 
+def mask(exposed_str):
+    ''' Mask a string '''
+    if exposed_str:
+        masked_str = '*' * (len(exposed_str)-5)
+        masked_str += exposed_str[-5:]
+        return masked_str
+    return exposed_str
+
 def create_app(config_class=DefaultConfig):
     '''
     Application factory
@@ -39,8 +47,11 @@ def create_app(config_class=DefaultConfig):
     app.logger.info('%s loading', app.config['APP_NAME'])
     app.logger.info("Connect to database %s", app.config['SQLALCHEMY_DATABASE_URI'])
     app.logger.info("ProjectRegister URL: %s", app.config['PROJECTREGISTRY'])
-    app.logger.info("BaseSpace Token: %s", app.config['BASESPACE_TOKEN'])
-    app.logger.info("SevenBridges Token: %s", app.config['SB_AUTH_TOKEN'])
+
+    app.logger.info("BaseSpace Endpoint: %s", app.config['BASESPACE_ENDPOINT'])
+    app.logger.info("BaseSpace Token: %s", mask(app.config['BASESPACE_TOKEN']))
+
+    app.logger.info("SevenBridges Token: %s", mask(app.config['SB_AUTH_TOKEN']))
     app.logger.info("AWS Batch Job Definition: %s", app.config['JOB_DEFINITION'])
     app.logger.info("AWS Batch Job Queue: %s", app.config['JOB_QUEUE'])
 
@@ -82,7 +93,7 @@ def create_app(config_class=DefaultConfig):
             mail_handler.setLevel(logging.ERROR)
             app.logger.addHandler(mail_handler)
 
-    from app.blueprints.main import BP as main_bp
+    from app.blueprints import main_bp
     app.register_blueprint(main_bp)
 
     from app.api import BLUEPRINT as api_bp
@@ -91,10 +102,10 @@ def create_app(config_class=DefaultConfig):
     from app.blueprints.user import BP as user_bp
     app.register_blueprint(user_bp)
 
-    from app.blueprints.basespace import BP as basespace_bp
+    from app.blueprints import basespace_bp
     app.register_blueprint(basespace_bp)
 
-    from app.blueprints.aws_batch import BP as aws_batch_bp
+    from app.blueprints import aws_batch_bp
     app.register_blueprint(aws_batch_bp)
 
     app.logger.info('%s loaded.', app.config['APP_NAME'])

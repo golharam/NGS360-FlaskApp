@@ -2,6 +2,7 @@
 Test /api/v0/runs endpoint
 '''
 import datetime
+from io import BytesIO
 import unittest
 from unittest import TestCase
 from moto import mock_s3
@@ -22,6 +23,59 @@ class RunsTests(TestCase):
         db.drop_all()
         self.client = None
         self.app_context.pop()
+
+    @mock_s3
+    def test_download_file(self):
+        ''' Test GET /<sequencing_run_id>/file works '''
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
+                            run_number='1', flowcell_id='000000001',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        db.session.commit()
+
+        boto3.resources['s3'].create_bucket(Bucket='somebucket')
+        boto3.clients['s3'].upload_file(Filename="test_data/SampleSheet.csv",
+                                        Bucket='somebucket',
+                                        Key="/PHIX3_test/SampleSheet.csv")
+
+        # Test if we don't provide a file, the response is http 400
+        response = self.client.get('/api/v0/runs/1/file')
+        assert response.status_code == 400
+
+        # Test if we don't provide a valid run, the response is http 404
+        response = self.client.get('/api/v0/runs/2/file?file=SampleSheet.csv')
+        assert response.status_code == 404
+
+        # Test we can download a file
+        response = self.client.get('/api/v0/runs/1/file?file=SampleSheet.csv')
+        # Check
+        assert response.status_code == 200
+
+        # Test if we don't provide a valid file, the response is http 404
+        response = self.client.get('/api/v0/runs/1/file?file=nofile')
+        assert response.status_code == 404
+
+    @mock_s3
+    def test_upload_file(self):
+        ''' Test POST /<sequencing_run_id>/file works '''
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
+                            run_number='1', flowcell_id='000000001',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        db.session.commit()
+
+        boto3.resources['s3'].create_bucket(Bucket='somebucket')
+
+        files = {"file": (open("test_data/SampleSheet.csv", 'rb'), 'SampleSheet.csv'),
+                 "filename": "SampleSheet.csv"
+                }
+        response = self.client.post('/api/v0/runs/1/file', data=files, content_type='multipart/form-data')
+        assert response.json['status'] == 'File, SampleSheet.csv, uploaded'
+
 
     def test_get_runs(self):
         run_date = datetime.date(2019, 1, 10)
