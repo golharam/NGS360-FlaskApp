@@ -1,15 +1,10 @@
 '''
 Sequencing Runs
---------
-    HTTP    URI           Action                              Implemented
-    ----    ---           ------                              -----------
-    GET     /api/v0/runs  Retrieve a list of sequencing runs  Runs.get()
-    POST    /api/v0/runs  Create/Add a sequencing run         Runs.post()
-
-Sequencing Runs
---------
-HTTP URI                                                       Action                                  Implemented
----- ---                                                       ------                                  -----------
+---------------
+HTTP   URI                                                     Action                                  Implemented
+----   ---                                                     ------                                  -----------
+GET    /api/v0/runs                                            Retrieve a list of sequencing runs      Runs.get()
+POST   /api/v0/runs                                            Create/Add a sequencing run             Runs.post()
 GET    /api/v0/runs/[id]                                       Retrieve info about a specific run      get_run(id)
 GET    /api/v0/runs/[id]/sample_sheet                          Retrieve the sample sheet for the run   get_run_sample_sheet(id)
 PUT    /api/v0/runs/[id]/samples                               Map samples to an existing run          put_samples(id)
