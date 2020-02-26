@@ -436,9 +436,30 @@
             populateDirectoryList();
         };
 
+        var currentDirectoryPath = "{{prefix}}/";
+
         function populateDirectoryList() {
             var folders = directory.folders;
             var files = directory.files;
+
+            if (currentDirectoryPath != "{{prefix}}/") {
+                 $("#directorylist").append('<tr><td class="text-xs-left">' +
+                     '<a href="#" id="folderlevelup">' +
+                       '<span class="glyphicon glyphicon-level-up" aria-hidden="true"></span>&nbsp;Up a level' +
+                     '</a></td>' +
+                     '<td class="text-xs-right"></td>' +
+                     '<td class="text-xs-right"></td></tr>');
+
+                $("#folderlevelup").click(function(){
+                    var tmpParentDirectoryPath = currentDirectoryPath.split("/");
+                    tmpParentDirectoryPath = tmpParentDirectoryPath.slice(0, tmpParentDirectoryPath.length-2);
+                    tmpParentDirectoryPath = tmpParentDirectoryPath.join("/") + "/";
+                    $.get("/api/v0/files?bucket={{bucket}}&prefix="+tmpParentDirectoryPath, function (data) {
+                        currentDirectoryPath = tmpParentDirectoryPath;
+                        updateDirectoryFolder(data);
+                    });
+                });
+            };
 
             $.each(folders, function(idx, elem){
                  var anchorId = "navFolder" + idx;
@@ -450,6 +471,7 @@
                  $("#"+anchorId).click(function(){
                      $.get("/api/v0/files?bucket={{bucket}}&prefix="+elem.name, function (data) {
                          directory = data;
+                         currentDirectoryPath = elem.name;
                          updateDirectoryFolder(data);
                      });
                  });
