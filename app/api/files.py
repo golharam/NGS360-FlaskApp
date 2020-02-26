@@ -1,17 +1,14 @@
 '''
 NGS 360 Files
 ----------------
-    HTTP    URI                     Action
-    ----    ---                     ------
-    GET     /api/v0/files           Retrieve a list of directories and files from S3 associated with a Project or Illumina Run
+HTTP    URI                     Action
+----    ---                     ------
+GET     /api/v0/files           Retrieve a list of directories and files from S3 associated with a Project or Illumina Run
 '''
 from flask import request, abort, current_app, jsonify
 from flask_login import current_user
 from flask_restplus import Namespace, Resource
 from app.models import Project, RunToSamples, SequencingRun
-#from app.biojira import get_jira, get_jira_issues, add_comment_to_issues
-#from app.blueprints.aws_batch import submit_job
-#from app import SEVENBRIDGES as sbg, DB as db, project_registry
 
 NS = Namespace('files', description='File related operations')
 
@@ -23,6 +20,11 @@ class Files(Resource):
         a Project or Illumina Run. This is gathered from an S3 endpoint
         using the BMS Project ID or Run ID.
 
+        ***TODO: For the moment, this method just returns a sample filesystem.
+        The mechanism to retrieve the related files from S3 needs to be implemented.
+
+        :param run: Associated Illumina run
+        :param project: Associated project
         :param bucket: S3 Bucket
         :param path: Root path in bucket
 
