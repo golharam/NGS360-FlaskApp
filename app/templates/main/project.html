@@ -24,6 +24,20 @@
                                 <p style="font-weight: bold">Project ID</p>
                                 <p id="projectid">{{projectid}}</p>
                             </div>
+
+                            <div class="databucket detail col-sm-4">
+                                <p style="font-weight: bold">Data</p>
+                                <a href="/browseFiles?bucket=bmsrd-ngs-data&prefix=/{{projectid}}/">
+                                    <span class="glyphicon glyphicon-folder-open"></span>
+                                </a>
+                            </div>
+                            <div class="resultsbucket detail col-sm-4">
+                                <p style="font-weight: bold">Results</p>
+                                <a href="/browseFiles?bucket=bmsrd-ngs-results&prefix=/{{projectid}}/">
+                                    <span class="glyphicon glyphicon-folder-open"></span>
+                                </a>
+                            </div>
+                            <!--
                             {% if xpress_project_id == -1 %}
                             <div class="xpress_project_id detail col-sm-4">
                                 <p style="font-weight: bold">Xpress</p>
@@ -32,6 +46,7 @@
                                 </p>
                             </div>
                             {% endif %}
+                            -->
                         </div>
 
                         <div class="row">
@@ -225,7 +240,6 @@
     $('#hideAll').css('display', 'block');
 
     $(document).ready( function () {
-
         $('.panel-heading').click(function () {
             var $this = $(this);
 

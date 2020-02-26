@@ -22,6 +22,12 @@ def show_basespace():
     ''' Show Basespace page '''
     return render_template('main/basespace.html')
 
+@BP.route('/browseFiles')
+@login_required
+def browseFiles():
+    return render_template("main/browseFiles.html", bucket=request.args.get('bucket'),
+                                                    prefix=request.args.get('prefix'))
+
 @BP.route("/jobs")
 @login_required
 def show_batch_jobs():
