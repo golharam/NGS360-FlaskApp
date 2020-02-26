@@ -446,7 +446,10 @@
                      '<td class="text-xs-right " data-sort-value="-1">&mdash;</td>' +
                      '<td class="text-xs-right " data-sort-value="elem.date" title="elem.date">'+elem.date+'</td></tr>');
                  $("#"+anchorId).click(function(){
-                     updateDirectoryFolder(elem);
+                     $.get("/api/v0/files?bucket={{bucket}}&prefix="+elem.name, function (data) {
+                         directory = data;
+                         updateDirectoryFolder(data);
+                     });
                  });
             });
             $.each(files, function(idx, elem){
