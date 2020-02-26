@@ -27,15 +27,11 @@
 
                             <div class="databucket detail col-sm-4">
                                 <p style="font-weight: bold">Data</p>
-                                <a href="/browseFiles?bucket=bmsrd-ngs-data&prefix=/{{projectid}}/">
-                                    <span class="glyphicon glyphicon-folder-open"></span>
-                                </a>
+                                <a><span class="glyphicon glyphicon-folder-open" id="browseDataBucket"></span></a>
                             </div>
                             <div class="resultsbucket detail col-sm-4">
                                 <p style="font-weight: bold">Results</p>
-                                <a href="/browseFiles?bucket=bmsrd-ngs-results&prefix=/{{projectid}}/">
-                                    <span class="glyphicon glyphicon-folder-open"></span>
-                                </a>
+                                <a><span class="glyphicon glyphicon-folder-open" id="browseResultsBucket"></span></a>
                             </div>
                             <!--
                             {% if xpress_project_id == -1 %}
@@ -296,8 +292,18 @@
         {% endif %}
 
         $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
-    });
 
+        $("#browseDataBucket").click(function() {
+            browseFiles = browseFilesDialog('bmsrd-ngs-data', "/{{projectid}}");
+            browseFiles.show();
+        });
+        $("#browseResultsBucket").click(function() {
+            browseFiles = browseFilesDialog('bmsrd-ngs-results', "/{{projectid}}");
+            browseFiles.show();
+        });
+
+    });
+    
     // Create SB Project Code
     function confirmCreateSBProject() {
         projectid = "{{projectid}}";
