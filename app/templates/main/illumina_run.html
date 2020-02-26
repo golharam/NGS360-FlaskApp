@@ -99,7 +99,55 @@
             </div>
         </div>
 
-        <h4><a href="/illumina_run/{{runid}}/files">Browse Illumina Run files</a></h4>
+        <h4>
+          <a data-toggle="modal" href="#fileBrowserModal" role="dialog" aria-labelledby="fileBrowserModalLabel">
+            <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
+            &nbsp;
+            Browse Illumina Run files
+          </a>
+        </h4>
+
+        <div class="modal fade" id="fileBrowserModal" tabindex="-1" role="dialog" aria-labelledby="fileBrowserModalLabel">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Files for {{run_barcode}}</h4>
+              </div>
+              <div class="modal-body">
+                <div class="row">
+                  <div class="col-xs-12 col-sm-5 col-md-4 col-sm-offset-7 col-md-offset-8 pull-sm-right">
+                    <div class="form-group">
+                      <label class="form-control-label sr-only" for="listr-search">Search</label>
+                      <input type="text" id="listr-search" class="form-control" placeholder="Search">
+                    </div>
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table id="listr-table" class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th class="text-xs-left " data-sort="string">Name</th>
+                        <th class="text-xs-right " data-sort="int">Size</th>
+                        <th class="text-xs-right " data-sort="int">Modified</th>
+                      </tr>
+                    </thead>
+                    <tfoot>
+                      <tr>
+                        <td colspan="3"></td>
+                      </tr>
+                    </tfoot>
+                    <tbody id="directorylist">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div id="indexqc" class="tab-pane fade">
             <div>
@@ -381,6 +429,52 @@
             // hide readCountTable
             $('#readCountTable').hide();
         });
+
+        var directory = {};
+
+        function updateDirectoryFolder(newDirectory) {
+            directory = newDirectory;
+            $("#directorylist").empty();
+            populateDirectoryList();
+        };
+
+        function populateDirectoryList() {
+            var folders = directory.folders;
+            var files = directory.files;
+
+            $.each(folders, function(idx, elem){
+                 var anchorId = "navFolder" + idx;
+                 $("#directorylist").append('<tr><td class="text-xs-left " data-sort-value="elem.name | lower">' +
+                     '<i class="fa fa-fw fa-folder " aria-hidden="true"></i>&nbsp;' +
+                     '<a href="#" id="'+anchorId+'"><strong>'+elem.name+'</strong></a></td>' +
+                     '<td class="text-xs-right " data-sort-value="-1">&mdash;</td>' +
+                     '<td class="text-xs-right " data-sort-value="elem.date" title="elem.date">'+elem.date+'</td></tr>');
+                 $("#"+anchorId).click(function(){
+                     updateDirectoryFolder(elem);
+                 });
+            });
+            $.each(files, function(idx, elem){
+                 $("#directorylist").append('<tr><td class="text-xs-left " data-sort-value="file-entry.name | lower">' +
+                     '<i class="fa fa-fw elem.name" aria-hidden="true"></i>&nbsp;' +
+                     '<a>'+elem.name+'</a></td>' +
+                     '<td class="text-xs-right " data-sort-value="elem.size" title="elem.size bytes">'+elem.size+'</td>' +
+                     '<td class="text-xs-right " data-sort-value="elem.date" title="elem.date">'+elem.date+'</td></tr>');
+            });
+        };
+
+        $.get("/api/v0/files", function (data) {
+            directory = data;
+            populateDirectoryList();
+        });
+
+        $('#fileBrowserModal').on('hidden.bs.modal', function () {
+            $.get("/api/v0/files", function (data) {
+                directory = data;
+                $("#directorylist").empty();
+                populateDirectoryList();
+            });
+        });
+
     }); // onReady - End
 
     function confirmRunAnalysis(optionSet, description) {
