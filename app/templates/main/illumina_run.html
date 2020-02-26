@@ -458,13 +458,13 @@
             });
         };
 
-        $.get("/api/v0/files", function (data) {
+        $.get("/api/v0/files?bucket={{bucket}}&prefix={{prefix}}/", function (data) {
             directory = data;
             populateDirectoryList();
         });
 
         $('#fileBrowserModal').on('hidden.bs.modal', function () {
-            $.get("/api/v0/files", function (data) {
+            $.get("/api/v0/files?bucket={{bucket}}&prefix={{prefix}}/", function (data) {
                 directory = data;
                 $("#directorylist").empty();
                 populateDirectoryList();

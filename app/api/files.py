@@ -8,6 +8,7 @@ GET     /api/v0/files           Retrieve a list of directories and files from S3
 from flask import request, abort, current_app, jsonify
 from flask_login import current_user
 from flask_restplus import Namespace, Resource
+from app import BOTO3 as boto3
 from app.models import Project, RunToSamples, SequencingRun
 
 NS = Namespace('files', description='File related operations')
@@ -20,13 +21,8 @@ class Files(Resource):
         a Project or Illumina Run. This is gathered from an S3 endpoint
         using the BMS Project ID or Run ID.
 
-        ***TODO: For the moment, this method just returns a sample filesystem.
-        The mechanism to retrieve the related files from S3 needs to be implemented.
-
-        :param run: Associated Illumina run
-        :param project: Associated project
         :param bucket: S3 Bucket
-        :param path: Root path in bucket
+        :param prefix: Root path in bucket
 
         :return associated_files: JSON object with the files associated
         with this desired project or run
@@ -35,16 +31,23 @@ class Files(Resource):
         # https://realpython.com/working-with-files-in-python/
         # Any filesystem should be able to be converted to this type
         # of data structure
-        sample_filesystem = {
-            'folders': [
-                {'name': 'sub_dir_a', 'files': [{'name': 'bar.py', 'date': '', 'size': '76KB'}, {'name': 'foo.py', 'date': '', 'size': '76KB'}]},
-                {'name': 'sub_dir_b', 'files': [{'name': 'file4.txt', 'date': '', 'size': '76KB'}]},
-                {'name': 'sub_dir_c', 'folders': [{'name': 'sub_dir_c1', 'files': [{'name': 'file6.txt', 'date': '', 'size': '76KB'},
-                                                                                   {'name': 'file7.csv', 'date': '', 'size': '76KB'}]}],
-                                      'files': [{'name': 'config.py', 'date': '', 'size': '76KB'}, {'name': 'file5.txt', 'date': '', 'size': '76KB'}]},
-            ],
-            'files': [{'name': 'file1.py', 'date': '', 'size': '76KB'}, {'name': 'file2.csv', 'date': '', 'size': '76KB'}, {'name': 'file3.txt', 'date': '', 'size': '76KB'}]
-        }
-
-        return jsonify(sample_filesystem)
-
+        paginator = boto3.clients['s3'].get_paginator('list_objects')
+        iterator = paginator.paginate(Bucket=request.args['bucket'],
+                                    Prefix=request.args['prefix'], Delimiter='/')
+        dirList = {"folders": [],
+                   "files": []}
+        for result in iterator:
+            if "CommonPrefixes" in result:
+                for o in result.get('CommonPrefixes'):
+                    dirList['folders'].append({'name': o.get('Prefix'),
+                                               'date': '-'})
+            if "Contents" in result:
+                for o in result.get('Contents'):
+                    #tmp['key'] = o.get('Key')
+                    #tmp['LastModified'] = str(o.get('LastModified'))
+                    #objectList.append(tmp)
+                    dirList['files'].append({'name': o.get('Key'),
+                                             'date': str(o.get('LastModified')),
+                                             'size': o.get('Size')
+                    })
+        return dirList
