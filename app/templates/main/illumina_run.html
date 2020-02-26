@@ -107,7 +107,9 @@
           <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
               <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
                 <h4 class="modal-title" id="myModalLabel">Files for {{run_barcode}}</h4>
               </div>
               <div class="modal-body">
@@ -440,11 +442,11 @@
 
             $.each(folders, function(idx, elem){
                  var anchorId = "navFolder" + idx;
-                 $("#directorylist").append('<tr><td class="text-xs-left " data-sort-value="elem.name | lower">' +
+                 $("#directorylist").append('<tr><td class="text-xs-left" data-sort-value="elem.name | lower">' +
                      '<i class="fa fa-fw fa-folder " aria-hidden="true"></i>&nbsp;' +
                      '<a href="#" id="'+anchorId+'"><strong>'+elem.name+'</strong></a></td>' +
-                     '<td class="text-xs-right " data-sort-value="-1">&mdash;</td>' +
-                     '<td class="text-xs-right " data-sort-value="elem.date" title="elem.date">'+elem.date+'</td></tr>');
+                     '<td class="text-xs-right" data-sort-value="-1">&mdash;</td>' +
+                     '<td class="text-xs-right" data-sort-value="elem.date" title="elem.date">'+elem.date+'</td></tr>');
                  $("#"+anchorId).click(function(){
                      $.get("/api/v0/files?bucket={{bucket}}&prefix="+elem.name, function (data) {
                          directory = data;
@@ -453,11 +455,11 @@
                  });
             });
             $.each(files, function(idx, elem){
-                 $("#directorylist").append('<tr><td class="text-xs-left " data-sort-value="file-entry.name | lower">' +
+                 $("#directorylist").append('<tr><td class="text-xs-left" data-sort-value="file-entry.name | lower">' +
                      '<i class="fa fa-fw elem.name" aria-hidden="true"></i>&nbsp;' +
                      '<a>'+elem.name+'</a></td>' +
-                     '<td class="text-xs-right " data-sort-value="elem.size" title="elem.size bytes">'+elem.size+'</td>' +
-                     '<td class="text-xs-right " data-sort-value="elem.date" title="elem.date">'+elem.date+'</td></tr>');
+                     '<td class="text-xs-right" data-sort-value="elem.size" title="elem.size bytes">'+elem.size+'</td>' +
+                     '<td class="text-xs-right" data-sort-value="elem.date" title="elem.date">'+elem.date+'</td></tr>');
             });
         };
 
