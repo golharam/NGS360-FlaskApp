@@ -50,8 +50,9 @@ def show_illumina_run():
 
     run = SequencingRun.query.get(runid)
     if run:
-        run_barcode = "%s_%s_%s_%s" % (run.run_date.strftime("%y%m%d"), run.machine_id,
-                                       run.run_number.zfill(4), run.flowcell_id)
+        #run_barcode = "%s_%s_%s_%s" % (run.run_date.strftime("%y%m%d"), run.machine_id,
+        #                               run.run_number.zfill(4), run.flowcell_id)
+        run_barcode = run.s3_run_folder_path.split('/')[-1]
         return render_template('main/illumina_run.html', runid=runid, run_barcode=run_barcode,
                                experiment_name=run.experiment_name, flowcell=run.flowcell_id)
     return abort(404)
