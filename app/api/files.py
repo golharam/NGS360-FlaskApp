@@ -27,10 +27,6 @@ class Files(Resource):
         :return associated_files: JSON object with the files associated
         with this desired project or run
         """
-        # sample_filesystem based on sample filesystem at:
-        # https://realpython.com/working-with-files-in-python/
-        # Any filesystem should be able to be converted to this type
-        # of data structure
         paginator = boto3.clients['s3'].get_paginator('list_objects')
         iterator = paginator.paginate(Bucket=request.args['bucket'],
                                     Prefix=request.args['prefix'], Delimiter='/')
