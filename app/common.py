@@ -1,3 +1,6 @@
+import botocore
+from app import BOTO3 as boto3
+
 def access(bucket, key):
     '''
     This function mimick os.access to check for a file
