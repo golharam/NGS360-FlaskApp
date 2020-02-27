@@ -236,7 +236,7 @@
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
-          <h4 class="modal-title" id="myModalLabel">Files for {{run_barcode}}</h4>
+          <h4 class="modal-title" id="myModalLabel">Files</h4>
         </div>
         <div class="modal-body">
           <div class="row">
@@ -338,11 +338,11 @@
         $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
 
         $("#browseDataBucket").click(function() {
-            browseFiles = new browseFilesDialog("#fileBrowserModal", "{{data_bucket}}", "{{projectid}}");
+            browseFiles = new browseFilesDialog("{{data_bucket}}", "{{projectid}}");
             browseFiles.show();
         });
         $("#browseResultsBucket").click(function() {
-            browseFiles = new browseFilesDialog("#fileBrowserModal", "{{results_bucket}}", "{{projectid}}");
+            browseFiles = new browseFilesDialog("{{results_bucket}}", "{{projectid}}");
             browseFiles.show();
         });
 
