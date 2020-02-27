@@ -110,5 +110,6 @@ def show_project(projectid):
     return render_template('main/project.html', projectid=projectid,
                            basespace_project=basespace_project,
                            xpress_project_id=xpress_project_id,
-                           runs=associated_runs)
-
+                           runs=associated_runs,
+                           data_bucket=current_app.config['DATA_BUCKET'],
+                           results_bucket=current_app.config["RESULTS_BUCKET"])
