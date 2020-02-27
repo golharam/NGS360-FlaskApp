@@ -5,11 +5,14 @@ HTTP    URI                     Action
 ----    ---                     ------
 GET     /api/v0/files           Retrieve a list of directories and files from S3 associated with a Project or Illumina Run
 '''
-from flask import request, abort, current_app, jsonify
+import logging
+from flask import request, abort, current_app, jsonify, redirect
 from flask_login import current_user
 from flask_restplus import Namespace, Resource
 from app import BOTO3 as boto3
 from app.models import Project, RunToSamples, SequencingRun
+
+from botocore.exceptions import ClientError
 
 NS = Namespace('files', description='File related operations')
 
@@ -47,3 +50,26 @@ class Files(Resource):
                                              'size': o.get('Size')
                     })
         return dirList
+
+@NS.route("/download")
+class DownloadFile(Resource):
+    def get(self):
+        """
+        Rest API to download a file
+
+        :param bucket: Bucket
+        :param key: Key
+
+        :return: redirect to pre-signed URL to download file
+        """
+        try:
+            response = boto3.clients['s3'].generate_presigned_url('get_object',
+                                                                  Params={'Bucket': request.args.get['bucket'],
+                                                                          'Key': request.args.get['key']},
+                                                                  ExpiresIn=10)
+        except ClientError as e:
+            logging.error(e)
+            return None
+
+        # The response contains the presigned URL
+        return redirect(response, code=302)
