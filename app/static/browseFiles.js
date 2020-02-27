@@ -54,10 +54,11 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
 };
 
 browseFilesDialog.prototype.show = function () {
-    url = "/api/v0/files?bucket="+this.bucket+"&prefix="+this.prefix+"/";
+    url = "/api/v0/files?bucket="+this.bucket+"&prefix="+this.root+"/";
     var self = this;
     $.get(url, function (data) {
         self.populateDirectoryList(data);
     });
+    $('#myModalLabel').text("Files for " + this.bucket + "/" + this.root);
     $('#fileBrowserModal').modal();
 };
