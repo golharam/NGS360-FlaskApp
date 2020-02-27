@@ -382,11 +382,11 @@
         $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
 
         $("#browseDataBucket").click(function() {
-            browseFiles = new browseFilesDialog("data_fileBrowserModal", "{{data_bucket}}", "{{projectid}}");
+            browseFiles = new browseFilesDialog("#data_fileBrowserModal", "{{data_bucket}}", "{{projectid}}");
             browseFiles.show();
         });
         $("#browseResultsBucket").click(function() {
-            browseFiles = new browseFilesDialog("results_fileBrowserModal", "{{results_bucket}}", "{{projectid}}");
+            browseFiles = new browseFilesDialog("#results_fileBrowserModal", "{{results_bucket}}", "{{projectid}}");
             browseFiles.show();
         });
 

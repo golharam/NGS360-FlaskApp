@@ -60,4 +60,5 @@ browseFilesDialog.prototype.show = function () {
         self.populateDirectoryList(data);
     });
     // TODO: Show the dialog
+    $(this.modalDialogId).modal();
 };
