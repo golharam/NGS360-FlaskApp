@@ -14,9 +14,8 @@
 </div>
 
 <span class="actions" style="float: right;">
-    <a data-toggle="modal" href="#fileBrowserModal" role="dialog" aria-labelledby="fileBrowserModalLabel">
-        <span class="glyphicon glyphicon-folder-open" aria-hidden="true"></span>
-    </a>
+    <a><span class="glyphicon glyphicon-folder-open" id="browseRawBucket"></span></a>
+    &nbsp;
 
     <span class="dropdown">
       <button class="btn btn-success btn-sm dropdown-toggle" id="download" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -428,6 +427,7 @@
             $('#readCountTable').hide();
         });
 
+        /*
         var directory = {};
 
         function updateDirectoryFolder(newDirectory) {
@@ -496,6 +496,11 @@
                 $("#directorylist").empty();
                 populateDirectoryList();
             });
+        });
+        */
+        $("#browseRawBucket").click(function() {
+            browseFiles = new browseFilesDialog("{{bucket}}", "{{prefix}}");
+            browseFiles.show();
         });
 
     }); // onReady - End
