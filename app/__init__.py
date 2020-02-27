@@ -46,12 +46,14 @@ def create_app(config_class=DefaultConfig):
     app.config.from_envvar('FLASK_CONFIG', silent=True)
     app.logger.info('%s loading', app.config['APP_NAME'])
     app.logger.info("Connect to database %s", app.config['SQLALCHEMY_DATABASE_URI'])
-    app.logger.info("ProjectRegister URL: %s", app.config['PROJECTREGISTRY'])
+    app.logger.info("ProjectRegistry URL: %s", app.config['PROJECTREGISTRY'])
+    app.logger.info("Xpress URL: %s", app.config['XPRESS_RESTAPI_ENDPOINT'])
 
     app.logger.info("BaseSpace Endpoint: %s", app.config['BASESPACE_ENDPOINT'])
     app.logger.info("BaseSpace Token: %s", mask(app.config['BASESPACE_TOKEN']))
 
     app.logger.info("SevenBridges Token: %s", mask(app.config['SB_AUTH_TOKEN']))
+
     app.logger.info("AWS Batch Job Definition: %s", app.config['JOB_DEFINITION'])
     app.logger.info("AWS Batch Job Queue: %s", app.config['JOB_QUEUE'])
 

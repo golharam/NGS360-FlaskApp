@@ -20,6 +20,7 @@ class DefaultConfig:
     APP_NAME = "NGS360"
     SECRET_KEY = os.environ.get('SECRET_KEY') or "changeme"
     PROJECTREGISTRY = os.environ.get("PROJECTREGISTRY_URL") or None
+    XPRESS_RESTAPI_ENDPOINT = os.environ.get("XPRESS_RESTAPI_ENDPOINT") or None
     TESTING = False
 
     # For production, define this to a production database
