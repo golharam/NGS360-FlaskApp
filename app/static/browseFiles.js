@@ -56,6 +56,7 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
 browseFilesDialog.prototype.show = function () {
     url = "/api/v0/files?bucket="+this.bucket+"&prefix="+this.root+"/";
     var self = this;
+    $("#directorylist").empty();
     $.get(url, function (data) {
         self.populateDirectoryList(data);
     });
