@@ -1,9 +1,9 @@
-var browseFilesDialog = function (modalDialogId, bucket, prefix) {
-    this.modalDialogId = modalDialogId;
+var browseFilesDialog = function (bucket, prefix) {
     // bucket
     this.bucket = bucket;
     // prefix of directory in bucket
     this.prefix = prefix;
+    this.root = prefix;
     console.log("Browsing s3://" + bucket + "/" + prefix);
 };
 
@@ -59,6 +59,5 @@ browseFilesDialog.prototype.show = function () {
     $.get(url, function (data) {
         self.populateDirectoryList(data);
     });
-    // TODO: Show the dialog
-    $(this.modalDialogId).modal();
+    $('#fileBrowserModal').modal();
 };
