@@ -3,15 +3,23 @@ var browseFilesDialog = function (bucket, prefix) {
     this.bucket = bucket;
     // prefix of directory in bucket
     this.prefix = prefix;
-    this.root = prefix;
-    console.log("Browsing s3://" + bucket + "/" + prefix);
+    this.currentDirectoryPath = prefix + "/";
+};
+
+browseFilesDialog.prototype.updateDirectoryFolder = function (newDirectory) {
+    directory = newDirectory;
+    $("#directorylist").empty();
+    this.populateDirectoryList();
 };
 
 browseFilesDialog.prototype.populateDirectoryList = function (directory) {
     var folders = directory.folders;
     var files = directory.files;
-    /*
-    if (currentDirectoryPath != (this.prefix + "/")) {
+    var bucket = this.bucket;
+    var currentDirectoryPath = this.currentDirectoryPath;
+    var prefix = this.prefix;
+    var self = this;
+    if (this.currentDirectoryPath != (this.prefix + "/")) {
          $("#directorylist").append('<tr><td class="text-xs-left">' +
              '<a href="#" id="folderlevelup">' +
                '<span class="glyphicon glyphicon-level-up" aria-hidden="true"></span>&nbsp;Up a level' +
@@ -28,19 +36,20 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
                 updateDirectoryFolder(data);
             });
         });
-    };*/
+    };
     $.each(folders, function(idx, elem){
          var anchorId = "navFolder" + idx;
+         var stripped_name = elem.name.replace(currentDirectoryPath, "");
          $("#directorylist").append('<tr><td class="text-xs-left" data-sort-value="elem.name | lower">' +
              '<i class="fa fa-fw fa-folder " aria-hidden="true"></i>&nbsp;' +
-             '<a href="#" id="'+anchorId+'"><strong>'+elem.name+'</strong></a></td>' +
+             '<a href="#" id="'+anchorId+'"><strong>'+stripped_name+'</strong></a></td>' +
              '<td class="text-xs-right" data-sort-value="-1">&mdash;</td>' +
              '<td class="text-xs-right" data-sort-value="elem.date" title="elem.date">'+elem.date+'</td></tr>');
          $("#"+anchorId).click(function(){
-             $.get("/api/v0/files?bucket={{bucket}}&prefix="+elem.name, function (data) {
+             $.get("/api/v0/files?bucket="+bucket+"&prefix="+elem.name, function (data) {
                  directory = data;
                  currentDirectoryPath = elem.name;
-                 updateDirectoryFolder(data);
+                 self.updateDirectoryFolder(data);
              });
          });
     });
@@ -54,12 +63,12 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
 };
 
 browseFilesDialog.prototype.show = function () {
-    url = "/api/v0/files?bucket="+this.bucket+"&prefix="+this.root+"/";
+    url = "/api/v0/files?bucket="+this.bucket+"&prefix="+this.prefix+"/";
     var self = this;
     $("#directorylist").empty();
     $.get(url, function (data) {
         self.populateDirectoryList(data);
     });
-    $('#myModalLabel').text("Files for " + this.bucket + "/" + this.root);
+    $('#myModalLabel').text("Files for " + this.bucket + "/" + this.prefix + "/");
     $('#fileBrowserModal').modal();
 };
