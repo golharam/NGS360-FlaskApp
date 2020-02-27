@@ -75,7 +75,7 @@
                             </div>
                         </div>
                     </div>
-                    </p>                
+                    </p>
                 </div>
             </div>
         </div>
@@ -229,6 +229,94 @@
 
 </div>
 
+<div class="modal fade" id="data_fileBrowserModal" tabindex="-1" role="dialog" aria-labelledby="browseDataBucket">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h4 class="modal-title" id="myModalLabel">Files for {{run_barcode}}</h4>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-xs-12 col-sm-5 col-md-4 col-sm-offset-7 col-md-offset-8 pull-sm-right">
+              <div class="form-group">
+                <label class="form-control-label sr-only" for="listr-search">Search</label>
+                <input type="text" id="listr-search" class="form-control" placeholder="Search">
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table id="listr-table" class="table table-hover">
+              <thead>
+                <tr>
+                  <th class="text-xs-left " data-sort="string">Name</th>
+                  <th class="text-xs-right " data-sort="int">Size</th>
+                  <th class="text-xs-right " data-sort="int">Modified</th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <td colspan="3"></td>
+                </tr>
+              </tfoot>
+              <tbody id="directorylist">
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div class="modal fade" id="results_fileBrowserModal" tabindex="-1" role="dialog" aria-labelledby="browseResultsBucket">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h4 class="modal-title" id="myModalLabel">Files for {{run_barcode}}</h4>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-xs-12 col-sm-5 col-md-4 col-sm-offset-7 col-md-offset-8 pull-sm-right">
+              <div class="form-group">
+                <label class="form-control-label sr-only" for="listr-search">Search</label>
+                <input type="text" id="listr-search" class="form-control" placeholder="Search">
+              </div>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table id="listr-table" class="table table-hover">
+              <thead>
+                <tr>
+                  <th class="text-xs-left " data-sort="string">Name</th>
+                  <th class="text-xs-right " data-sort="int">Size</th>
+                  <th class="text-xs-right " data-sort="int">Modified</th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <td colspan="3"></td>
+                </tr>
+              </tfoot>
+              <tbody id="directorylist">
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -294,11 +382,11 @@
         $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
 
         $("#browseDataBucket").click(function() {
-            browseFiles = browseFilesDialog('bmsrd-ngs-data', "/{{projectid}}");
+            browseFiles = new browseFilesDialog("data_fileBrowserModal", "{{data_bucket}}", "{{projectid}}");
             browseFiles.show();
         });
         $("#browseResultsBucket").click(function() {
-            browseFiles = browseFilesDialog('bmsrd-ngs-results', "/{{projectid}}");
+            browseFiles = new browseFilesDialog("results_fileBrowserModal", "{{results_bucket}}", "{{projectid}}");
             browseFiles.show();
         });
 
