@@ -54,9 +54,10 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
          });
     });
     $.each(files, function(idx, elem){
+         var stripped_filename = elem.name.replace(currentDirectoryPath, "");
          $("#directorylist").append('<tr><td class="text-xs-left" data-sort-value="file-entry.name | lower">' +
              '<i class="fa fa-fw elem.name" aria-hidden="true"></i>&nbsp;' +
-             '<a>'+elem.name+'</a></td>' +
+             '<a>'+stripped_filename+'</a></td>' +
              '<td class="text-xs-right" data-sort-value="elem.size" title="elem.size bytes">'+elem.size+'</td>' +
              '<td class="text-xs-right" data-sort-value="elem.date" title="elem.date">'+elem.date+'</td></tr>');
     });
