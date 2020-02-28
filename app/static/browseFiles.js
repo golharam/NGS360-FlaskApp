@@ -31,9 +31,9 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
             var tmpParentDirectoryPath = currentDirectoryPath.split("/");
             tmpParentDirectoryPath = tmpParentDirectoryPath.slice(0, tmpParentDirectoryPath.length-2);
             tmpParentDirectoryPath = tmpParentDirectoryPath.join("/") + "/";
-            $.get("/api/v0/files?bucket={{bucket}}&prefix="+tmpParentDirectoryPath, function (data) {
-                currentDirectoryPath = tmpParentDirectoryPath;
-                updateDirectoryFolder(data);
+            $.get("/api/v0/files?bucket="+bucket+"&prefix="+tmpParentDirectoryPath, function (data) {
+                self.currentDirectoryPath = tmpParentDirectoryPath;
+                self.updateDirectoryFolder(data);
             });
         });
     };
@@ -48,7 +48,7 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
          $("#"+anchorId).click(function(){
              $.get("/api/v0/files?bucket="+bucket+"&prefix="+elem.name, function (data) {
                  directory = data;
-                 currentDirectoryPath = elem.name;
+                 self.currentDirectoryPath = elem.name;
                  self.updateDirectoryFolder(data);
              });
          });
