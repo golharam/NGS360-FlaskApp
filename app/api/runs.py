@@ -111,6 +111,7 @@ class DemultiplexRun(Resource):
             abort(404)
 
         run = SequencingRun.query.get(sequencing_run_id)
+        if not run: abort(404)
         run_barcode = "%s_%s_%s_%s" % (run.run_date.strftime("%y%m%d"), run.machine_id,
                                        run.run_number, run.flowcell_id)
 

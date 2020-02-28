@@ -5,7 +5,7 @@ import datetime
 from io import BytesIO
 import unittest
 from unittest import TestCase
-from moto import mock_s3
+from moto import mock_s3, mock_batch, mock_iam
 from app import create_app, DB as db, BOTO3 as boto3
 from app.models import SequencingRun
 from config import TestConfig
@@ -217,6 +217,69 @@ class RunsTests(TestCase):
                                            'index': 'TAAGGCGA',
                                            'index2': 'CTCTCTAT'}]
                                 }
+
+    def test_post_demultiplex_anonymous_user(self):
+        ''' Test that anonymous user cannot demux run '''
+        # Set up test case
+        # Set up supporting mocks
+        # Test
+        response = self.client.post('/api/v0/runs/1/demultiplex')
+        # Check results
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_demultiplex_std_bcl2fastq_nonexistentrun(self):
+        ''' Test that user can demux run '''
+        # Set up test case
+        # Set up supporting mocks
+        # Test
+        response = self.client.post('/api/v0/runs/1/demultiplex?user=testuser')
+        # Check results
+        self.assertEqual(response.status_code, 404)
+
+    @mock_iam
+    @mock_batch
+    def test_post_demultiplex_std_bcl2fastq(self):
+        ''' Test that user can demux run '''
+        # Set up test case
+        # Set up supporting mocks
+        boto3.clients['batch'].register_job_definition(
+            jobDefinitionName="job",
+            type="container",
+            containerProperties={
+                "image": "busybox",
+                "vcpus": 1,
+                "memory": 128,
+                "command": ["sleep", "10"],
+            })
+        resp = boto3.clients["iam"].create_role(
+            RoleName="TestRole", AssumeRolePolicyDocument="some_policy")
+        iam_arn = resp["Role"]["Arn"]
+        env = boto3.clients['batch'].create_compute_environment(
+            computeEnvironmentName='compute_name',
+            type="UNMANAGED",
+            state="ENABLED",
+            serviceRole=iam_arn)
+        boto3.clients['batch'].create_job_queue(
+            jobQueueName="queue",
+            state="ENABLED",
+            priority=123,
+            computeEnvironmentOrder=[{"order": 123, "computeEnvironment": env['computeEnvironmentArn']}])
+
+        self.app.config['BCL2FASTQ_JOB'] = "job"
+        self.app.config['BCL2FASTQ_QUEUE'] = "queue"
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
+                            run_number='1', flowcell_id='000000001',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        db.session.commit()
+        # Test
+        response = self.client.post('/api/v0/runs/1/demultiplex?user=testuser')
+        # Check results
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('jobName' in response.json)
+        self.assertTrue('jobId' in response.json)
 
 if __name__ == '__main__':
     unittest.main()

@@ -38,7 +38,7 @@ class DefaultConfig:
     BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
 
     BOTO3_REGION = os.environ.get('AWS_REGION') or None
-    BOTO3_SERVICES = ['batch', 'lambda', 'logs', 's3']
+    BOTO3_SERVICES = ['batch', 'lambda', 'logs', 's3', 'iam']
 
     SB_AUTH_TOKEN = os.environ.get('SB_AUTH_TOKEN') or None
 
