@@ -105,6 +105,8 @@ class DemultiplexRun(Resource):
         # user is required for _submitJob
         if request.json and 'user' in request.json:
             user = request.json['user']
+        elif 'user' in request.args:
+            user = request.args['user']
         else:
             abort(404)
 
