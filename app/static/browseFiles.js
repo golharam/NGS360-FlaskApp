@@ -9,7 +9,7 @@ var browseFilesDialog = function (bucket, prefix) {
 browseFilesDialog.prototype.updateDirectoryFolder = function (newDirectory) {
     directory = newDirectory;
     $("#directorylist").empty();
-    this.populateDirectoryList();
+    this.populateDirectoryList(directory);
 };
 
 browseFilesDialog.prototype.populateDirectoryList = function (directory) {
