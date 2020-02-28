@@ -9,6 +9,7 @@ var browseFilesDialog = function (bucket, prefix) {
 browseFilesDialog.prototype.updateDirectoryFolder = function (newDirectory) {
     directory = newDirectory;
     $("#directorylist").empty();
+    $('#myModalLabel').text("Files for " + this.bucket + "/" + this.currentDirectoryPath);
     this.populateDirectoryList(directory);
 };
 
@@ -19,6 +20,7 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
     var currentDirectoryPath = this.currentDirectoryPath;
     var prefix = this.prefix;
     var self = this;
+    // show "Up one level", if we are in a subdirectory
     if (this.currentDirectoryPath != (this.prefix + "/")) {
          $("#directorylist").append('<tr><td class="text-xs-left">' +
              '<a href="#" id="folderlevelup">' +
@@ -27,7 +29,7 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
              '<td class="text-xs-right"></td>' +
              '<td class="text-xs-right"></td></tr>');
 
-        $("#folderlevelup").click(function(){
+        $("#folderlevelup").click(function() {
             var tmpParentDirectoryPath = currentDirectoryPath.split("/");
             tmpParentDirectoryPath = tmpParentDirectoryPath.slice(0, tmpParentDirectoryPath.length-2);
             tmpParentDirectoryPath = tmpParentDirectoryPath.join("/") + "/";
@@ -37,7 +39,8 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
             });
         });
     };
-    $.each(folders, function(idx, elem){
+    // show folders
+    $.each(folders, function(idx, elem) {
          var anchorId = "navFolder" + idx;
          var stripped_name = elem.name.replace(currentDirectoryPath, "");
          $("#directorylist").append('<tr><td class="text-xs-left" data-sort-value="elem.name | lower">' +
@@ -53,7 +56,8 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
              });
          });
     });
-    $.each(files, function(idx, elem){
+    // show files
+    $.each(files, function(idx, elem) {
          var stripped_filename = elem.name.replace(currentDirectoryPath, "");
          $("#directorylist").append('<tr><td class="text-xs-left" data-sort-value="file-entry.name | lower">' +
              '<i class="fa fa-fw elem.name" aria-hidden="true"></i>&nbsp;' +
