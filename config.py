@@ -23,6 +23,9 @@ class DefaultConfig:
     XPRESS_RESTAPI_ENDPOINT = os.environ.get("XPRESS_RESTAPI_ENDPOINT") or None
     TESTING = False
 
+    DATA_BUCKET = os.environ.get('DATA_BUCKET') or None
+    RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET') or None
+
     # For production, define this to a production database
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'sqlite:///' + os.path.join(BASEDIR, 'app.db')

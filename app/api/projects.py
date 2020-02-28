@@ -258,3 +258,4 @@ class exportSevenBridgesProjectByReference(Resource):
             }
         return submit_job(job_name, job_cmd, current_app.config['JOB_DEFINITION'], None,
                           current_user.username)
+

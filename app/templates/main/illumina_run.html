@@ -14,6 +14,10 @@
 </div>
 
 <span class="actions" style="float: right;">
+    <a><span class="glyphicon glyphicon-folder-open" id="browseRawBucket"></span></a>
+    &nbsp;
+
+    <!--
     <span class="dropdown">
       <button class="btn btn-success btn-sm dropdown-toggle" id="download" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         <span class="glyphicon glyphicon-download"></span>&nbsp;Download File
@@ -24,7 +28,7 @@
         <li><a href="/api/v0/runs/{{runid}}/file?file=runParameters.xml">RunParameters.xml</a></li>
       </ul>
     </span>
-
+    -->
     <span class="dropdown">
         <button class="btn btn-success btn-sm dropdown-toggle" id="upload" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
             <span class="glyphicon glyphicon-download"></span>&nbsp;Upload File
@@ -97,6 +101,42 @@
                     </thead>
                 </table>
             </div>
+        </div>
+
+        <div class="modal fade" id="fileBrowserModal" tabindex="-1" role="dialog" aria-labelledby="fileBrowserModalLabel">
+          <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Files for {{run_barcode}}</h4>
+              </div>
+              <div class="modal-body">
+                <div class="table-responsive">
+                  <table id="listr-table" class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th class="text-xs-left " data-sort="string">Name</th>
+                        <th class="text-xs-right " data-sort="int">Size</th>
+                        <th class="text-xs-right " data-sort="int">Modified</th>
+                      </tr>
+                    </thead>
+                    <tfoot>
+                      <tr>
+                        <td colspan="3"></td>
+                      </tr>
+                    </tfoot>
+                    <tbody id="directorylist">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div id="indexqc" class="tab-pane fade">
@@ -379,6 +419,12 @@
             // hide readCountTable
             $('#readCountTable').hide();
         });
+
+        $("#browseRawBucket").click(function() {
+            browseFiles = new browseFilesDialog("{{bucket}}", "{{prefix}}");
+            browseFiles.show();
+        });
+
     }); // onReady - End
 
     function confirmRunAnalysis(optionSet, description) {

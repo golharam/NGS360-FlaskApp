@@ -22,6 +22,12 @@ def show_basespace():
     ''' Show Basespace page '''
     return render_template('main/basespace.html')
 
+@BP.route('/browseFiles')
+@login_required
+def browseFiles():
+    return render_template("main/browseFiles.html", bucket=request.args.get('bucket'),
+                                                    prefix=request.args.get('prefix'))
+
 @BP.route("/jobs")
 @login_required
 def show_batch_jobs():
@@ -40,6 +46,22 @@ def show_illumina_runs():
     ''' Show Illumina Runs page '''
     return render_template('main/illumina_runs.html')
 
+def find_bucket_key(s3path):
+    """
+    This is a helper function that given an s3 path such that the path is of
+    the form: bucket/key
+    It will return the bucket and the key represented by the s3 path, eg
+    if s3path == s3://bmsrd-ngs-data/P-234
+    """
+    if s3path.startswith('s3://'):
+        s3path = s3path[5:]
+    s3components = s3path.split('/')
+    bucket = s3components[0]
+    s3key = ""
+    if len(s3components) > 1:
+        s3key = '/'.join(s3components[1:])
+    return bucket, s3key
+
 @BP.route("/illumina_run")
 @login_required
 def show_illumina_run():
@@ -50,10 +72,11 @@ def show_illumina_run():
 
     run = SequencingRun.query.get(runid)
     if run:
-        run_barcode = "%s_%s_%s_%s" % (run.run_date.strftime("%y%m%d"), run.machine_id,
-                                       run.run_number.zfill(4), run.flowcell_id)
+        bucket, key = find_bucket_key(run.s3_run_folder_path)
+        run_barcode = run.s3_run_folder_path.split('/')[-1]
         return render_template('main/illumina_run.html', runid=runid, run_barcode=run_barcode,
-                               experiment_name=run.experiment_name, flowcell=run.flowcell_id)
+                               experiment_name=run.experiment_name, flowcell=run.flowcell_id,
+                               bucket=bucket, prefix=key)
     return abort(404)
 
 @BP.route("/projects")
@@ -87,5 +110,6 @@ def show_project(projectid):
     return render_template('main/project.html', projectid=projectid,
                            basespace_project=basespace_project,
                            xpress_project_id=xpress_project_id,
-                           runs=associated_runs)
-
+                           runs=associated_runs,
+                           data_bucket=current_app.config['DATA_BUCKET'],
+                           results_bucket=current_app.config["RESULTS_BUCKET"])
