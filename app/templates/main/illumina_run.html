@@ -477,14 +477,14 @@
         if (optionSet == 1) {
             postData = JSON.stringify({ 'ASSAY': 'EdgeSeq' });
         } else if (optionSet == 2) {
-            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'hg38', 'user': "{{session.username}}"});
+            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'hg38', 'user': "{{current_user.username}}"});
         } else if (optionSet == 3) {
-            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'mm10', 'user': "{{session.username}}"});
+            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'mm10', 'user': "{{current_user.username}}"});
         } else if (optionSet == 4) {
-            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'cyno', 'user': "{{session.username}}"});
+            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'cyno', 'user': "{{current_user.username}}"});
         }
         $.ajax({
-            url: "/api/v0/runs/{{runid}}/demultiplex",
+            url: "/api/v0/runs/{{runid}}/demultiplex?user={{current_user.username}}",
             type: "POST",
             data: postData,
             contentType: "application/json; charset=utf-8",

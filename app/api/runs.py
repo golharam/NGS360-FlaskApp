@@ -105,8 +105,10 @@ class DemultiplexRun(Resource):
         # user is required for _submitJob
         if request.json and 'user' in request.json:
             user = request.json['user']
+        elif 'user' in request.args:
+            user = request.args['user']
         else:
-            user = current_user.username
+            abort(404)
 
         run = SequencingRun.query.get(sequencing_run_id)
         run_barcode = "%s_%s_%s_%s" % (run.run_date.strftime("%y%m%d"), run.machine_id,

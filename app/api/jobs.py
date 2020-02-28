@@ -106,7 +106,7 @@ class Job(Resource):
 
         db.session.add(job)
         db.session.commit()
-        return super.get(jobid)
+        return self.get(jobid)
 
 @NS.route("<string:jobid>/log")
 class JobLog(Resource):
