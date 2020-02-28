@@ -65,7 +65,8 @@ class DownloadFile(Resource):
         try:
             response = boto3.clients['s3'].generate_presigned_url('get_object',
                                                                   Params={'Bucket': request.args.get('bucket'),
-                                                                          'Key': request.args.get('key')},
+                                                                          'Key': request.args.get('key'),
+                                                                          "ResponseContentDisposition": "attachment;"},
                                                                   ExpiresIn='10')
         except ClientError as e:
             logging.error(e)
