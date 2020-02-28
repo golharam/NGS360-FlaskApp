@@ -106,7 +106,7 @@ class DemultiplexRun(Resource):
         if request.json and 'user' in request.json:
             user = request.json['user']
         else:
-            user = current_user.username
+            abort(404)
 
         run = SequencingRun.query.get(sequencing_run_id)
         run_barcode = "%s_%s_%s_%s" % (run.run_date.strftime("%y%m%d"), run.machine_id,
