@@ -90,7 +90,13 @@
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     {{ nav_link('main.show_basespace', 'BaseSpace') }}
-                    {{ nav_link('main.show_illumina_runs', 'Illumina Runs')}}
+                    <li class="illuminaInfo">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Illumina <b class="caret drop-icon"></b></a>
+                        <ul class="dropdown-menu">
+                            {{ nav_link('main.show_illumina_qc', 'QC Visualizations') }}
+                            {{ nav_link('main.show_illumina_runs', 'Runs')}}
+                        </ul>
+                    </li>
                     {{ nav_link('main.show_projects', 'Projects')}}
                     <li><a href="http://xpress.pri.bms.com">Xpress</a></li>
                 </ul>

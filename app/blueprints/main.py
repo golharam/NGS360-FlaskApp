@@ -40,6 +40,11 @@ def show_batch_jobs():
         username = None
     return render_template('main/jobs.html', username=username)
 
+@BP.route("/illumina_qc")
+@login_required
+def show_illumina_qc():
+    return render_template('main/illumina_qc.html')
+
 @BP.route("/illumina_runs")
 @login_required
 def show_illumina_runs():

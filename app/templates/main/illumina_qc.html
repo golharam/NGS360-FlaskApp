@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class="container">
+    <ul class="nav nav-tabs">
+        <li CLASS="active"><a data-toggle="tab" href="#runoperations">Run Operations</a></li>
+        <li><a data-toggle="tab" href="#runquality">Run Quality</a></li>
+        <li><a data-toggle="tab" href="#flowcell">Flowcell Dashboard</a></li>
+        <li><a data-toggle="tab" href="#indexqc">IndexQC</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="runoperations" class="tab-pane fade in active">
+            <h3>Run Operations</h3>
+            <div class='tableauPlaceholder' style='width: 1204px; height: 836px;'>
+                <object class='tableauViz' width='1204' height='836' style='display:none;'>
+                    <param name='host_url' value='https%3A%2F%2Ftableau.bms.com%2F'/>
+                    <param name='site_root' value='/t/PRODUCTION'/>
+                    <param name='name' value='SequencingRunDashboard/SequencingRunDashboard'/>
+                    <param name='tabs' value='no'/>
+                    <param name='toolbar' value='yes'/>
+                    <param name='showAppBanner' value='false'/>
+                    <param name='showShareOptions' value='true'/>
+                </object>
+            </div>
+        </div>
+        <div id="runquality" class="tab-pane fade">
+            <h3>Run Quality</h3>
+            <div class='tableauPlaceholder' style='width: 1204px; height: 836px;'>
+                <object class='tableauViz' width='1204' height='836' style='display:none;'>
+                    <param name='host_url' value='https%3A%2F%2Ftableau.bms.com%2F'/>
+                    <param name='site_root' value='/t/PRODUCTION'/>
+                    <param name='name' value='SequencingRunQuality/RunQualityDashboard'/>
+                    <param name='tabs' value='no'/>
+                    <param name='toolbar' value='yes'/>
+                    <param name='showAppBanner' value='false'/>
+                    <param name='showShareOptions' value='true'/>
+                </object>
+            </div>
+        </div>
+        <div id="flowcell" class="tab-pane fade">
+            <h3>Flowcell Analytics</h3>
+            <div class='tableauPlaceholder' style='width: 1204px; height: 836px;'>
+                <object class='tableauViz' width='1204' height='836' style='display:none;'>
+                    <param name='host_url' value='https%3A%2F%2Ftableau.bms.com%2F'/>
+                    <param name='site_root' value='/t/PRODUCTION'/>
+                    <param name='name' value='FlowcellDashboard/FlowcellDashboard'/>
+                    <param name='tabs' value='no'/>
+                    <param name='toolbar' value='yes'/>
+                    <param name='showAppBanner' value='false'/>
+                    <param name='showShareOptions' value='true'/>
+                </object>
+            </div>
+        </div>
+        <div id="indexqc" class="tab-pane fade">
+            <h3>IndexQC</h3>
+            <div class='tableauPlaceholder' style='width: 1204px; height: 836px;'>
+                <object class='tableauViz' width='1004' height='836' style='display:none;'>
+                    <param name='host_url' value='https%3A%2F%2Ftableau.bms.com%2F' />
+                    <param name='site_root' value='/t/PRODUCTION' />
+                    <param name='name' value='PercentReadsPerSampleQCVizPage/ReadsIdentified' />
+                    <param name='tabs' value='no' />
+                    <param name='toolbar' value='yes' />
+                    <param name='showAppBanner' value='false' />
+                    <param name='showShareOptions' value='true' />
+                </object>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script type='text/javascript' src='https://tableau.bms.com/javascripts/api/viz_v1.js'></script>
+{% endblock %}
