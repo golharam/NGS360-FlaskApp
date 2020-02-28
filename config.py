@@ -46,9 +46,8 @@ class DefaultConfig:
     BCL2FASTQ_QUEUE = os.environ.get('BCL2FASTQ_QUEUE') or None
     SCRNASEQ_LAMBDA_FN = os.environ.get('SCRNASEQ_LAMBDA_FN') or None
 
-
-    JOB_DEFINITION = os.environ.get('NGS_JOB') or None
-    JOB_QUEUE = os.environ.get('NGS_JOB_QUEUE') or None
+    JOB_DEFINITION = os.environ.get('JOB_DEFINITION') or None
+    JOB_QUEUE = os.environ.get('JOB_QUEUE') or None
 
     JIRA_SERVER = os.environ.get('JIRA_SERVER') or None
     JIRA_USER = os.environ.get('JIRA_USER') or None
