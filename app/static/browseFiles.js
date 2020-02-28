@@ -59,7 +59,7 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
     // show files
     $.each(files, function(idx, elem) {
          var stripped_filename = elem.name.replace(currentDirectoryPath, "");
-         var url = "api/v0/files/download?bucket="+bucket+"&key="+elem.name;
+         var url = "/api/v0/files/download?bucket="+bucket+"&key="+elem.name;
          $("#directorylist").append('<tr><td class="text-xs-left" data-sort-value="file-entry.name | lower">' +
              '<i class="fa fa-fw elem.name" aria-hidden="true"></i>&nbsp;' +
              '<a href="'+url+'">'+stripped_filename+'</a></td>' +
