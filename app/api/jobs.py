@@ -63,21 +63,16 @@ class Jobs(Resource):
                        status=request.json['status'])
         db.session.add(job)
         db.session.commit()
-        return jsonify({'job': job.to_dict() }), 201
+        return {'job': job.to_dict()}, 201
 
 @NS.route("/<string:jobid>")
 class Job(Resource):
-    def delete(self, jobid):
-        job = BatchJob.query.filter_by(id=jobid).first()
-        if job:
-            db.session.delete(job)
-            db.session.commit()
-            return '{"Status": "Deleted"}', 200
-        return '{"Status": "Job does not exist"}', 200
 
     def get(self, jobid):
         job = BatchJob.query.filter_by(id=jobid).first()
-        return jsonify(job.to_dict()), 200
+        if job:
+            return job.to_dict(), 200
+        return {}, 200
 
     def put(self, jobid):
         '''
@@ -108,14 +103,14 @@ class Job(Resource):
         db.session.commit()
         return self.get(jobid)
 
-@NS.route("<string:jobid>/log")
+@NS.route("/<string:jobid>/log")
 class JobLog(Resource):
     def get(self, jobid):
         job = BatchJob.query.filter_by(id=jobid).first()
         if not job:
-            return jsonify(["Unknown job"]), 200
+            return ["Unknown job"], 200
         if not job.log_stream_name:
-            return jsonify(["No log (yet) available"]), 200
+            return ["No log (yet) available"], 200
 
         events = get_log_events("/aws/batch/job", job.log_stream_name)
-        return jsonify(events), 200
+        return events, 200
