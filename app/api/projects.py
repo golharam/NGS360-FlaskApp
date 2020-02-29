@@ -129,13 +129,19 @@ class CreateSevenBridgesProject(Resource):
         :param projecttype: Type of Project to Create/Refresh
         :return: AWS Batch Job ID
         '''
+        if 'username' not in request.args:
+            return {"status": "error", "Message": "No username"}, 200
+        if 'email' not in request.args:
+            return {"status": "error", "Message": "No email"}, 200
+        username = request.args['username']
+        email = request.args['email']
         job_name = 'createSevenBridgesProject-%s-%s' % (projectid, projecttype)
         job_command = {
-            'command' : ['sbg', 'loadProject', '-o', current_user.email,
+            'command' : ['sbg', 'loadProject', '-o', email,
                         '-p', projectid, '-t', projecttype]
         }
         return submit_job(job_name, job_command, current_app.config['JOB_DEFINITION'],
-                          current_app.config['JOB_QUEUE'], current_user.username)
+                          current_app.config['JOB_QUEUE'], username)
 
 @NS.route("/<projectid>/copyAnalysisResults")
 class CopyAnalysisResultsAction(Resource):
