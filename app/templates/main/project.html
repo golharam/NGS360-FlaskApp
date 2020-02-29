@@ -363,10 +363,10 @@
         /* projectType is {MDT, WES, RNA-Seq}
          */
         jobStatusDialog = showJobStatusDialog("Creating " + projectid + " " + projectType + " in SevenBridges", null, null);
-        requestUrl = "/api/v0/" + projectid + "/createSevenBridgesProject/" + projectType;
+        requestUrl = "/api/v0/projects/" + projectid + "/createSevenBridgesProject/" + projectType;
         $.get(requestUrl, function(data) {  
             if (('status' in data) && (data['status'] == 'ERROR')) {
-                alert(data['log'])
+                jobStatusDialog.setMessage(data['log'])
             } else {
                 jobStatusDialog.setData('jobName', data['jobName']);
                 jobStatusDialog.setData('jobId', data['jobId']);
@@ -413,7 +413,7 @@
                 contentType: "application/json",
                 success: function(data) {
                     if (('status' in data) && (data['status'] == 'ERROR')) {
-                        alert(data['log'])
+                        jobStatusDialog.setMessage(data['log'])
                     } else {
                         jobStatusDialog.setData('jobName', data['jobName']);
                         jobStatusDialog.setData('jobId', data['jobId']);
@@ -446,7 +446,7 @@
         jobStatusDialog = showJobStatusDialog("Copying fastq files to S3", null, null)
         $.get("/copyBaseSpaceProjectToS3/" + projectid, function(data) {
             if (('status' in data) && (data['status'] == 'ERROR')) {
-                alert(data['log'])
+                jobStatusDialog.setMessage(data['log'])
             } else {
                 jobStatusDialog.setData('jobName', data['jobName']);
                 jobStatusDialog.setData('jobId', data['jobId']);
