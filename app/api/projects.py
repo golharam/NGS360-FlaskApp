@@ -130,9 +130,9 @@ class CreateSevenBridgesProject(Resource):
         :return: AWS Batch Job ID
         '''
         if 'username' not in request.args:
-            return {"status": "error", "Message": "No username"}, 200
+            return {"status": "error", "message": "No username"}, 200
         if 'email' not in request.args:
-            return {"status": "error", "Message": "No email"}, 200
+            return {"status": "error", "message": "No email"}, 200
         username = request.args['username']
         email = request.args['email']
         job_name = 'createSevenBridgesProject-%s-%s' % (projectid, projecttype)
