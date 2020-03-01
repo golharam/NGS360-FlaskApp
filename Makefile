@@ -37,7 +37,21 @@ docker-run:
 docker-shell:
 	docker run --rm -ti -v $(PWD)/app.db:/app/app.db -v $(PWD)/app:/app/app -v $(PWD)/tests:/app/tests -p 5000:5000 $(NAME) /bin/bash
 
-deploy:
+deploy-dev:
+	cp .ebextensions/03-application.config.dev .ebextensions/03-application.config
 	git add .ebextensions/
 	eb deploy --staged
 	git reset HEAD .ebextensions/
+
+deploy-staging:
+	cp .ebextensions/03-application.config.staging .ebextensions/03-application.config
+	git add .ebextensions/
+	eb deploy --staged
+	git reset HEAD .ebextensions/
+
+deploy-prod:
+	cp .ebextensions/03-application.config.prod .ebextensions/03-application.config
+	git add .ebextensions/
+	eb deploy --staged
+	git reset HEAD .ebextensions/
+
