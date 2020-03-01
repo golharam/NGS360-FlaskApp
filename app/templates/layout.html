@@ -45,7 +45,6 @@
     <script type="text/javascript" src="/static/js/dataTables.colResize.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap.fd.js"></script>
     <script type="text/javascript" src="/static/ngs.js"></script>
-    <script type="text/javascript" src="/static/tour.js?v=3"></script>
     <script type="text/javascript" src="/static/browseFiles.js"></script>
 
     <script type="text/javascript">
@@ -128,7 +127,9 @@
                     </li>
                     {% endif %}
                     <li>
-                        <p class="tourIcon" style="margin: 0; padding: 15px; cursor: pointer"><img src="/static/images/info-blue.png" alt="" onclick="tour.restart();"></p>
+                        <p class="tourIcon" style="margin: 0; padding: 15px; cursor: pointer">
+                            <img src="/static/images/info-blue.png" alt="" onclick="window.location.href='{{config['HELP_URL']}}'">
+                        </p>
                     </li>
                 </ul>
 
