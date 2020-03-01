@@ -1,3 +1,4 @@
+Werkzeug==0.16.1
 flask
 flask-boto3
 flask-login
