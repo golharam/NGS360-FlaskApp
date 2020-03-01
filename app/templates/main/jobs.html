@@ -30,7 +30,7 @@
 
         var table = $('#joblist').DataTable({
             "ajax": {
-                url: "/api/v0/users/{{username}}/jobs",
+                url: "/api/v0/users/{{current_user.username}}/jobs",
                 dataSrc: ''
             },
             "buttons": [ 'colvis' ],
