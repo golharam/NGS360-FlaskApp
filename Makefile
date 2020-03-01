@@ -1,5 +1,5 @@
 NAME=ngs360-flask
-.PHONY: clean install build lint test-frontend run shell docker-run docker-test docker-shell deploy
+.PHONY: clean install build lint test-frontend run shell docker-run docker-test docker-shell deploy-dev deploy-staging deploy-prod
 
 all: clean install test lint build
 
