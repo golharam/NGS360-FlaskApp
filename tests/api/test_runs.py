@@ -76,7 +76,6 @@ class RunsTests(TestCase):
         response = self.client.post('/api/v0/runs/1/file', data=files, content_type='multipart/form-data')
         assert response.json['status'] == 'File, SampleSheet.csv, uploaded'
 
-
     def test_get_runs(self):
         run_date = datetime.date(2019, 1, 10)
         run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
@@ -103,6 +102,17 @@ class RunsTests(TestCase):
         # Fetch an unknown run
         response = self.client.get('/api/v0/runs?run_barcode=190110_M00124_0001_000000001')
         assert response.status_code == 404
+
+    def test_post_runs(self):
+        data = {
+            's3_run_folder_path': 's3://somebucket/PHIX3_test',
+            'run_date': '190215',
+            'machine_id': 'M00123',
+            'run_number': '2',
+            'flowcell_id': 'A',
+            'experiment_name': 'PHIX3 test'}
+        response = self.client.post('/api/v0/runs', json=data)
+        self.assertEqual(response.status_code, 201)
 
     @mock_s3
     def test_get_run_metrics_notexist(self):

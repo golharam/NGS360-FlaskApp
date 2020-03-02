@@ -89,7 +89,7 @@ class Runs(Resource):
         else:
             abort(409)
         run = SequencingRun.query.filter_by(s3_run_folder_path=s3_run_folder_path).first()
-        return jsonify({'run': run.to_dict()}), 201
+        return {'run': run.to_dict()}, 201
 
 @NS.route("/<sequencing_run_id>")
 class Run(Resource):
