@@ -291,5 +291,21 @@ class RunsTests(TestCase):
         self.assertTrue('jobName' in response.json)
         self.assertTrue('jobId' in response.json)
 
+    def test_put_samples(self):
+        # Set up test parameters
+        data = [{'sampleid': 'samplea', 'projectid': 'P-00000000-0001'}]
+        # Set up supporting mocks
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
+                            run_number='1', flowcell_id='000000001',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        db.session.commit()
+        # Test
+        response = self.client.put('/api/v0/runs/1/samples', json=data)
+        # Check Results
+        self.assertEqual(response.json['Status'], "OK")
+
 if __name__ == '__main__':
     unittest.main()

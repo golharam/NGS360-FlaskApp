@@ -29,7 +29,7 @@ from sample_sheet import SampleSheet as IlluminaSampleSheet
 
 from app import BOTO3 as boto3, DB as db
 from app.common import access, find_bucket_key
-from app.models import SequencingRun
+from app.models import SequencingRun, RunToSamples
 from app.blueprints.aws_batch import submit_job
 
 NS = Namespace('runs', description='Runs related operations')
@@ -183,14 +183,17 @@ class SampleSheet(Resource):
             bucket, key = find_bucket_key(sample_sheet_path)
             if not access(bucket, key):
                 return {"Status": "error", "Message": "%s not found" % sample_sheet_path}, 404
-            ss = IlluminaSampleSheet(sample_sheet_path)
-            ss = ss.to_json()
-            ss = json.loads(ss)
-            ss_json['Header'] = ss['Header']
-            ss_json['Reads'] = ss['Reads']
-            ss_json['Settings'] = ss['Settings']
-            ss_json['DataCols'] = list(ss['Data'][0].keys())
-            ss_json['Data'] = ss['Data']
+            try:
+                ss = IlluminaSampleSheet(sample_sheet_path)
+                ss = ss.to_json()
+                ss = json.loads(ss)
+                ss_json['Header'] = ss['Header']
+                ss_json['Reads'] = ss['Reads']
+                ss_json['Settings'] = ss['Settings']
+                ss_json['DataCols'] = list(ss['Data'][0].keys())
+                ss_json['Data'] = ss['Data']
+            except ValueError:
+                pass
         return ss_json
 
 @NS.route("/<sequencing_run_id>/samples")
@@ -250,11 +253,11 @@ class Samples(Resource):
         """
         run = SequencingRun.query.get(sequencing_run_id)
         if not run:
-            return '{"Status": "Not Found", "Message": "Run not found"}', 404
+            return {"Status": "Not Found", "Message": "Run not found"}, 404
 
         if not request.json:
-            return ('{"Status": "Bad Request", "Message": "No json data included in the '
-                'request, or json data is empty"}', 400)
+            return {"Status": "Bad Request",
+                    "Message": "No json data included in the request, or json data is empty"}, 400
 
         new_runtosamples_objs = []
 
@@ -268,8 +271,8 @@ class Samples(Resource):
             if 'sampleid' in mapping:
                 run_to_samples_mapping.sample_id = mapping['sampleid']
             else:
-                return ('{"Status": "Bad Request", "Message": "All mappings in '
-                        'request must include Samples to map to Sequencing Run"}', 400)
+                return {"Status": "Bad Request",
+                        "Message": "All mappings in request must include Samples to map to Sequencing Run"}, 400
 
             if 'projectid' in mapping:
                 projectid = mapping['projectid']
@@ -282,11 +285,11 @@ class Samples(Resource):
 
         try:
             db.session.commit()
-            return jsonify({"Status": "OK", "Successful mappings": request.json}), 200
+            return {"Status": "OK", "Successful mappings": request.json}, 200
         except:
             db.session.rollback()
-            return jsonify({"Status": "Internal Server Error",
-                            "Message": "Run to Samples mappings could not be saved"}), 500
+            return {"Status": "Internal Server Error",
+                            "Message": "Run to Samples mappings could not be saved"}, 500
 
 @NS.route("/<sequencing_run_id>/file")
 class SequencingRunFile(Resource):
