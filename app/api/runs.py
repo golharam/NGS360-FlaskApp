@@ -183,14 +183,17 @@ class SampleSheet(Resource):
             bucket, key = find_bucket_key(sample_sheet_path)
             if not access(bucket, key):
                 return {"Status": "error", "Message": "%s not found" % sample_sheet_path}, 404
-            ss = IlluminaSampleSheet(sample_sheet_path)
-            ss = ss.to_json()
-            ss = json.loads(ss)
-            ss_json['Header'] = ss['Header']
-            ss_json['Reads'] = ss['Reads']
-            ss_json['Settings'] = ss['Settings']
-            ss_json['DataCols'] = list(ss['Data'][0].keys())
-            ss_json['Data'] = ss['Data']
+            try:
+                ss = IlluminaSampleSheet(sample_sheet_path)
+                ss = ss.to_json()
+                ss = json.loads(ss)
+                ss_json['Header'] = ss['Header']
+                ss_json['Reads'] = ss['Reads']
+                ss_json['Settings'] = ss['Settings']
+                ss_json['DataCols'] = list(ss['Data'][0].keys())
+                ss_json['Data'] = ss['Data']
+            except ValueError:
+                pass
         return ss_json
 
 @NS.route("/<sequencing_run_id>/samples")
