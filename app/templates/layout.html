@@ -45,7 +45,7 @@
     <script type="text/javascript" src="/static/js/dataTables.colResize.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap.fd.js"></script>
     <script type="text/javascript" src="/static/ngs.js"></script>
-    <script type="text/javascript" src="/static/tour.js?v=3"></script>
+    <script type="text/javascript" src="/static/browseFiles.js"></script>
 
     <script type="text/javascript">
         {% if current_user.username %}
@@ -89,7 +89,13 @@
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     {{ nav_link('main.show_basespace', 'BaseSpace') }}
-                    {{ nav_link('main.show_illumina_runs', 'Illumina Runs')}}
+                    <li class="illuminaInfo">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Illumina <b class="caret drop-icon"></b></a>
+                        <ul class="dropdown-menu">
+                            {{ nav_link('main.show_illumina_qc', 'QC Visualizations') }}
+                            {{ nav_link('main.show_illumina_runs', 'Runs')}}
+                        </ul>
+                    </li>
                     {{ nav_link('main.show_projects', 'Projects')}}
                     <li><a href="http://xpress.pri.bms.com">Xpress</a></li>
                 </ul>
@@ -121,7 +127,9 @@
                     </li>
                     {% endif %}
                     <li>
-                        <p class="tourIcon" style="margin: 0; padding: 15px; cursor: pointer"><img src="/static/images/info-blue.png" alt="" onclick="tour.restart();"></p>
+                        <p class="tourIcon" style="margin: 0; padding: 15px; cursor: pointer">
+                            <img src="/static/images/info-blue.png" alt="" onclick="window.location.href='{{config['HELP_URL']}}'">
+                        </p>
                     </li>
                 </ul>
 
@@ -131,14 +139,16 @@
     <!-- END Fixed navbar -->
 
     <div class="container theme-showcase" role="main">
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-    <ul>
-        {% for message in messages %}
-        <li>{{ message }}</li>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+      {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {{ message }}
+        </div>
         {% endfor %}
-    </ul>
-    {% endif %}
+      {% endif %}
     {% endwith %}
 
     {% block body %}

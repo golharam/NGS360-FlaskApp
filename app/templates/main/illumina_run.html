@@ -13,30 +13,22 @@
     <div class="progressStatus hide"></div>
 </div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
 <span class="actions" style="float: right;">
+    <a href="#"><span class="glyphicon glyphicon-folder-open" id="browseRawBucket"></span></a>
+    &nbsp;
+
+    <!--
     <span class="dropdown">
       <button class="btn btn-success btn-sm dropdown-toggle" id="download" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
         <span class="glyphicon glyphicon-download"></span>&nbsp;Download File
         <span class="caret"></span>
       </button>
       <ul class="dropdown-menu" aria-labelledby="download">
-        <li><a href="/api/v0/runs/{{runid}}/download_file?file=SampleSheet.csv">SampleSheet.csv</a></li>
-        <li><a href="/api/v0/runs/{{runid}}/download_file?file=RunParameters.xml">RunParameters.xml</a></li>
+        <li><a href="/api/v0/runs/{{runid}}/file?file=SampleSheet.csv">SampleSheet.csv</a></li>
+        <li><a href="/api/v0/runs/{{runid}}/file?file=runParameters.xml">RunParameters.xml</a></li>
       </ul>
     </span>
-
+    -->
     <span class="dropdown">
         <button class="btn btn-success btn-sm dropdown-toggle" id="upload" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
             <span class="glyphicon glyphicon-download"></span>&nbsp;Upload File
@@ -111,6 +103,42 @@
             </div>
         </div>
 
+        <div class="modal fade" id="fileBrowserModal" tabindex="-1" role="dialog" aria-labelledby="fileBrowserModalLabel">
+          <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Files for {{run_barcode}}</h4>
+              </div>
+              <div class="modal-body">
+                <div class="table-responsive">
+                  <table id="listr-table" class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th class="text-xs-left " data-sort="string">Name</th>
+                        <th class="text-xs-right " data-sort="int">Size</th>
+                        <th class="text-xs-right " data-sort="int">Modified</th>
+                      </tr>
+                    </thead>
+                    <tfoot>
+                      <tr>
+                        <td colspan="3"></td>
+                      </tr>
+                    </tfoot>
+                    <tbody id="directorylist">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div id="indexqc" class="tab-pane fade">
             <div>
                 <table id="readCountTable" class="table table-hover" style="width:100%">
@@ -142,8 +170,11 @@
         console.log("Running illumina_run::ready()")
         // Begin Upload functionality
         // https://stackoverflow.com/questions/2320069/jquery-ajax-file-upload
-        var Upload = function (file) {
+        var Upload = function (file, filename) {
+            // file contains file.name, which is the client side name.
             this.file = file;
+            // filename represents what we want the server to call it.
+            this.filename = filename
         };
         Upload.prototype.getType = function() {
             return this.file.type;
@@ -159,8 +190,8 @@
             var formData = new FormData();
 
             // add assoc key values, this will be posts values
-            formData.append("file", this.file, this.getName());
-            formData.append("upload_file", true);
+            formData.append("file", this.file);
+            formData.append("filename", this.filename);
 
             $('.progressStatus').removeClass('hide');
 
@@ -217,7 +248,7 @@
                 else if (ev.files.length == 1) {
                     // There is limited checking I can do to ensure the file being uploaded is a text/csv from Windows.
                     // I will accept the upload here and parse it on the server to be sure its correct.
-                    uploadSampleSheet = new Upload(ev.files[0]);
+                    uploadSampleSheet = new Upload(ev.files[0], 'SampleSheet.csv');
                 } else {
                     alert("You can only upload 1 file.");
                 }
@@ -226,7 +257,7 @@
 
         $(document).on('click', '.bfd-ok', function () {
             if (uploadSampleSheet != null) {
-                uploadSampleSheet.doUpload("/api/v0/runs/{{runid}}/upload_sample_sheet");
+                uploadSampleSheet.doUpload("/api/v0/runs/{{runid}}/file");
             }
         });
         // End Upload Samplesheet functionality
@@ -241,7 +272,7 @@
                 else if (ev.files.length == 1) {
                     // There is limited checking I can do to ensure the file being uploaded is a text/csv from Windows.
                     // I will accept the upload here and parse it on the server to be sure its correct.
-                    uploadFeaturesFile = new Upload(ev.files[0]);
+                    uploadFeaturesFile = new Upload(ev.files[0], 'features.csv');
                 } else {
                     alert("You can only upload 1 file.");
                 }
@@ -249,8 +280,8 @@
         });
 
         $(document).on('click', '.bfd-ok', function () {
-            if (uploadSampleSheet != null) {
-                uploadSampleSheet.doUpload("/api/v0/runs/{{runid}}/upload_features_file");
+            if (uploadFeaturesFile != null) {
+                uploadFeaturesFile.doUpload("/api/v0/runs/{{runid}}/file");
             }
         });
         // End Upload features file functionality
@@ -388,6 +419,12 @@
             // hide readCountTable
             $('#readCountTable').hide();
         });
+
+        $("#browseRawBucket").click(function() {
+            browseFiles = new browseFilesDialog("{{bucket}}", "{{prefix}}");
+            browseFiles.show();
+        });
+
     }); // onReady - End
 
     function confirmRunAnalysis(optionSet, description) {
@@ -440,14 +477,14 @@
         if (optionSet == 1) {
             postData = JSON.stringify({ 'ASSAY': 'EdgeSeq' });
         } else if (optionSet == 2) {
-            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'hg38', 'user': "{{session.username}}"});
+            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'hg38', 'user': "{{current_user.username}}"});
         } else if (optionSet == 3) {
-            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'mm10', 'user': "{{session.username}}"});
+            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'mm10', 'user': "{{current_user.username}}"});
         } else if (optionSet == 4) {
-            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'cyno', 'user': "{{session.username}}"});
+            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'cyno', 'user': "{{current_user.username}}"});
         }
         $.ajax({
-            url: "/api/v0/runs/{{runid}}/demultiplex",
+            url: "/api/v0/runs/{{runid}}/demultiplex?user={{current_user.username}}",
             type: "POST",
             data: postData,
             contentType: "application/json; charset=utf-8",

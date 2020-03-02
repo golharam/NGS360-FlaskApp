@@ -103,24 +103,6 @@
                 });
             }
         });
-
-        // Tour
-        var visited = Cookies.get('toured-v2.1');
-        console.log("Toured-v2.1 cookie is " + visited);
-        if (visited == null) {
-            console.log("Setting cookies and starting tour");
-            Cookies.set('toured-v2.1', 'yes', { expires: 1000000 });
-            Cookies.set('toured-jobs-page', 'yes', { expires: 1000000 });
-            tour.restart();
-        } else {
-            var tour_jobs_page = Cookies.get('toured-jobs-page');
-            console.log("toured-jobs-page cookie is " + tour_jobs_page);
-            if ((tour_jobs_page == null) && (jobs_tour != null)) {
-                console.log("Setting toured-jobs-page cookie and starting tour");
-                Cookies.set('toured-jobs-page', 'yes', { expires: 1000000 });
-                jobs_tour.restart();
-            }
-        }
     } );
 </script>
 {% endblock %}

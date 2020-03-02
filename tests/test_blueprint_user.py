@@ -18,67 +18,14 @@ class BlueprintUserTests(TestCase):
         self.client = None
         self.app_context.pop()
 
-    def assert_flashes(self, expected_message, expected_category='message'):
-        with self.client.session_transaction() as session:
-            try:
-                category, message = session['_flashes'][0]
-            except KeyError:
-                raise AssertionError('nothing flashed')
-            assert expected_message in message
-            assert expected_category == category
-
-    def assert_in_session(self, key, value):
-        with self.client.session_transaction() as session:
-            assert key in session
-            assert session[key] == value
-
-    def assert_not_in_session(self, key):
-        with self.client.session_transaction() as session:
-            assert key not in session
-
     def test_login(self):
         res = self.client.get("/login")
         assert res.status_code == 200
 
-    def test_login_submit_fails(self):
-        self.client.post("/login", data=dict(
-            username='testuser',
-            password='testpass',
-            remember_me='y'
-        ), follow_redirects=False)
-        self.assert_flashes("Invalid username or password")
-        self.assert_not_in_session('user_id')
-
-    def test_login_submit(self):
-        user = User(username="testuser", email="testuser@someemail.com")
-        user.set_password("testpass")
-        db.session.add(user)
-        db.session.commit()
-        self.client.post("/login", data=dict(
-            username='testuser',
-            password='testpass',
-            remember_me='y'
-        ), follow_redirects=False)
-        self.assert_in_session('user_id', '1')
-
-    def test_login_already_authenticated(self):
-        self.test_login_submit()
-        res = self.client.get("/login", follow_redirects=False)
+    def test_logout(self):
+        res = self.client.get("/logout")
         assert res.status_code == 302
 
-    def test_login_incorrectpassword(self):
-        user = User(username="testuser", email="testuser@someemail.com")
-        user.set_password("wrongpass")
-        db.session.add(user)
-        db.session.commit()
-        self.client.post("/login", data=dict(
-            username='testuser',
-            password='testpass',
-            remember_me='y'
-        ), follow_redirects=False)
-        self.assert_not_in_session('user_id')
-
-    def test_logout(self):
-        self.test_login_submit()
-        self.client.get("/logout")
-        self.assert_not_in_session('user_id')
+    def test_get_register(self):
+        res = self.client.get("/register")
+        assert res.status_code == 200

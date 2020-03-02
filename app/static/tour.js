@@ -138,25 +138,3 @@ var tour = new Tour({
     "<button class='btn btn-default' data-role='next'>Next »</button>" +
     "<button class='btn btn-default' data-role='end'>Got it</button> </div>",
 });
-
-var jobs_tour = new Tour({
-    backdrop: false,
-    debug: true,
-    steps: [
-        {
-            element: ".jobs",
-            title: "Jobs",
-            content: "The jobs page will show you a list of all your jobs, their status, and log",
-            placement: "auto"
-        },
-    ],
-    storage: window.localStorage,
-    template: "<div class='popover tour'> " +
-    "<div class='arrow'></div> " +
-    "<h3 class='popover-title'></h3> " +
-    "<div class='popover-content'></div> " +
-    "<div class='popover-navigation'> " +
-    "<button class='btn btn-default' data-role='prev'>« Prev</button> " +
-    "<button class='btn btn-default' data-role='next'>Next »</button>" +
-    "<button class='btn btn-default' data-role='end'>Got it</button> </div>",
-});

@@ -119,9 +119,33 @@ class ProjectList(Resource):
             return result, 201
         abort(404)
 
+@NS.route("/<projectid>/createSevenBridgesProject/<projecttype>")
+class CreateSevenBridgesProject(Resource):
+    def get(self, projectid, projecttype):
+        '''
+        Rest API to create/fresh Project in SB
+
+        :param projectid: BMS Project ID
+        :param projecttype: Type of Project to Create/Refresh
+        :return: AWS Batch Job ID
+        '''
+        if 'username' not in request.args:
+            return {"status": "error", "message": "No username"}, 200
+        if 'email' not in request.args:
+            return {"status": "error", "message": "No email"}, 200
+        username = request.args['username']
+        email = request.args['email']
+        job_name = 'createSevenBridgesProject-%s-%s' % (projectid, projecttype)
+        job_command = {
+            'command' : ['sbg', 'loadProject', '-o', email,
+                        '-p', projectid, '-t', projecttype]
+        }
+        return submit_job(job_name, job_command, current_app.config['JOB_DEFINITION'],
+                          current_app.config['JOB_QUEUE'], username)
+
 @NS.route("/<projectid>/copyAnalysisResults")
 class CopyAnalysisResultsAction(Resource):
-    def post(projectid):
+    def post(self, projectid):
         '''
         Rest API to copy RNA-Seq or WES analysis results from SB
 
@@ -134,14 +158,14 @@ class CopyAnalysisResultsAction(Resource):
         '''
         # TODO: Secure with auth_tokens
         if not request.json:
-            return '{"Status": "error", "Message": "No json included"}', 404
+            return {"Status": "error", "Message": "No json included"}, 404
 
         if 'analysistype' not in request.json:
-            return '{"Status": "error", "Message": "analysistype not found in JSON"}', 404
+            return {"Status": "error", "Message": "analysistype not found in JSON"}, 404
         analysistype = request.json['analysistype']
 
         if 'reference' not in request.json:
-            return '{"Status": "error", "Message": "reference not found in JSON"}', 404
+            return {"Status": "error", "Message": "reference not found in JSON"}, 404
         reference = request.json['reference']
 
         # user is required for _submitJob
@@ -174,14 +198,16 @@ class CopyAnalysisResultsAction(Resource):
                             '-t', analysistype]
             }
         else:
-            return '{"Status": "error", "Message": "Unknown analysistype"}', 404
+            return {"Status": "error", "Message": "Unknown analysistype"}, 404
 
         job_name = 'copyAnalysisResults-%s' % projectid
-        return submit_job(job_name, job_cmd, current_app.config['JOB_DEFINITION'], None, user)
+        return submit_job(job_name, job_cmd, current_app.config['JOB_DEFINITION'],
+                          current_app.config['JOB_QUEUE'], user)
+
 
 @NS.route("/<projectid>/exportSevenBridgesProject/<projecttype>")
 class ExportSevenBridgesProject(Resource):
-    def get(projectid, projecttype):
+    def get(self, projectid, projecttype):
         '''
         Rest API to export RNA-Seq or WES Project from SB
 
@@ -215,7 +241,7 @@ class ExportSevenBridgesProject(Resource):
 
 @NS.route("/<projectid>/exportSevenBridgesProject/<projecttype>/<reference>")
 class exportSevenBridgesProjectByReference(Resource):
-    def get(projectid, projecttype, reference):
+    def get(self, projectid, projecttype, reference):
         '''
         Rest API to export RNA-Seq or WES Project from SB
 

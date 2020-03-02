@@ -20,7 +20,11 @@ class DefaultConfig:
     APP_NAME = "NGS360"
     SECRET_KEY = os.environ.get('SECRET_KEY') or "changeme"
     PROJECTREGISTRY = os.environ.get("PROJECTREGISTRY_URL") or None
+    XPRESS_RESTAPI_ENDPOINT = os.environ.get("XPRESS_RESTAPI_ENDPOINT") or None
     TESTING = False
+
+    DATA_BUCKET = os.environ.get('DATA_BUCKET') or None
+    RESULTS_BUCKET = os.environ.get('RESULTS_BUCKET') or None
 
     # For production, define this to a production database
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
@@ -30,17 +34,20 @@ class DefaultConfig:
     FLASK_LOG_FILE = os.environ.get('FLASK_LOG_FILE') or None
     FLASK_LOG_LEVEL = os.environ.get('FLASK_LOG_LEVEL') or 'INFO'
 
+    BASESPACE_ENDPOINT = os.environ.get('BASESPACE_ENDPOINT') or None
     BASESPACE_TOKEN = os.environ.get('BASESPACE_TOKEN') or None
+
+    BOTO3_REGION = os.environ.get('AWS_REGION') or None
+    BOTO3_SERVICES = ['batch', 'lambda', 'logs', 's3', 'iam']
+
     SB_AUTH_TOKEN = os.environ.get('SB_AUTH_TOKEN') or None
 
     BCL2FASTQ_JOB = os.environ.get('BCL2FASTQ_JOB') or None
     BCL2FASTQ_QUEUE = os.environ.get('BCL2FASTQ_QUEUE') or None
     SCRNASEQ_LAMBDA_FN = os.environ.get('SCRNASEQ_LAMBDA_FN') or None
 
-    BOTO3_SERVICES = ['batch', 'lambda', 'logs', 's3']
-
-    JOB_DEFINITION = os.environ.get('NGS_JOB') or None
-    JOB_QUEUE = os.environ.get('NGS_JOB_QUEUE') or None
+    JOB_DEFINITION = os.environ.get('JOB_DEFINITION') or None
+    JOB_QUEUE = os.environ.get('JOB_QUEUE') or None
 
     JIRA_SERVER = os.environ.get('JIRA_SERVER') or None
     JIRA_USER = os.environ.get('JIRA_USER') or None

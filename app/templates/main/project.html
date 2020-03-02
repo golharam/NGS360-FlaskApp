@@ -24,6 +24,16 @@
                                 <p style="font-weight: bold">Project ID</p>
                                 <p id="projectid">{{projectid}}</p>
                             </div>
+
+                            <div class="databucket detail col-sm-4">
+                                <p style="font-weight: bold">Data</p>
+                                <a href="#"><span class="glyphicon glyphicon-folder-open" id="browseDataBucket"></span></a>
+                            </div>
+                            <div class="resultsbucket detail col-sm-4">
+                                <p style="font-weight: bold">Results</p>
+                                <a href="#"><span class="glyphicon glyphicon-folder-open" id="browseResultsBucket"></span></a>
+                            </div>
+                            <!--
                             {% if xpress_project_id == -1 %}
                             <div class="xpress_project_id detail col-sm-4">
                                 <p style="font-weight: bold">Xpress</p>
@@ -32,6 +42,7 @@
                                 </p>
                             </div>
                             {% endif %}
+                            -->
                         </div>
 
                         <div class="row">
@@ -64,7 +75,7 @@
                             </div>
                         </div>
                     </div>
-                    </p>                
+                    </p>
                 </div>
             </div>
         </div>
@@ -218,6 +229,42 @@
 
 </div>
 
+<div class="modal fade" id="fileBrowserModal" tabindex="-1" role="dialog" aria-labelledby="browseBucket">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title" id="myModalLabel">Files</h4>
+        </div>
+        <div class="modal-body">
+            <div class="table-responsive">
+            <table id="listr-table" class="table table-hover">
+                <thead>
+                <tr>
+                    <th class="text-xs-left " data-sort="string">Name</th>
+                    <th class="text-xs-right " data-sort="int">Size</th>
+                    <th class="text-xs-right " data-sort="int">Modified</th>
+                </tr>
+                </thead>
+                <tfoot>
+                <tr>
+                    <td colspan="3"></td>
+                </tr>
+                </tfoot>
+                <tbody id="directorylist">
+                </tbody>
+            </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -225,7 +272,6 @@
     $('#hideAll').css('display', 'block');
 
     $(document).ready( function () {
-
         $('.panel-heading').click(function () {
             var $this = $(this);
 
@@ -282,8 +328,17 @@
         {% endif %}
 
         $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
-    });
 
+        $("#browseDataBucket").click(function() {
+            browseFiles = new browseFilesDialog("{{data_bucket}}", "{{projectid}}");
+            browseFiles.show();
+        });
+        $("#browseResultsBucket").click(function() {
+            browseFiles = new browseFilesDialog("{{results_bucket}}", "{{projectid}}");
+            browseFiles.show();
+        });
+    });
+    
     // Create SB Project Code
     function confirmCreateSBProject() {
         projectid = "{{projectid}}";
@@ -307,10 +362,10 @@
         /* projectType is {MDT, WES, RNA-Seq}
          */
         jobStatusDialog = showJobStatusDialog("Creating " + projectid + " " + projectType + " in SevenBridges", null, null);
-        requestUrl = "/api/v0/" + projectid + "/createSevenBridgesProject/" + projectType;
+        requestUrl = "/api/v0/projects/" + projectid + "/createSevenBridgesProject/" + projectType + "?username={{current_user.username}}&email={{current_user.email}}";
         $.get(requestUrl, function(data) {  
-            if (('status' in data) && (data['status'] == 'ERROR')) {
-                alert(data['log'])
+            if (('status' in data) && (data['status'] == 'error')) {
+                jobStatusDialog.setMessage(data['message'])
             } else {
                 jobStatusDialog.setData('jobName', data['jobName']);
                 jobStatusDialog.setData('jobId', data['jobId']);
@@ -357,7 +412,7 @@
                 contentType: "application/json",
                 success: function(data) {
                     if (('status' in data) && (data['status'] == 'ERROR')) {
-                        alert(data['log'])
+                        jobStatusDialog.setMessage(data['log'])
                     } else {
                         jobStatusDialog.setData('jobName', data['jobName']);
                         jobStatusDialog.setData('jobId', data['jobId']);
@@ -390,7 +445,7 @@
         jobStatusDialog = showJobStatusDialog("Copying fastq files to S3", null, null)
         $.get("/copyBaseSpaceProjectToS3/" + projectid, function(data) {
             if (('status' in data) && (data['status'] == 'ERROR')) {
-                alert(data['log'])
+                jobStatusDialog.setMessage(data['log'])
             } else {
                 jobStatusDialog.setData('jobName', data['jobName']);
                 jobStatusDialog.setData('jobId', data['jobId']);
