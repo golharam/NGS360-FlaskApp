@@ -158,21 +158,19 @@ class CopyAnalysisResultsAction(Resource):
         '''
         # TODO: Secure with auth_tokens
         if not request.json:
-            return {"Status": "error", "Message": "No json included"}, 404
+            return {"status": "error", "message": "No json included"}, 404
 
         if 'analysistype' not in request.json:
-            return {"Status": "error", "Message": "analysistype not found in JSON"}, 404
+            return {"status": "error", "message": "analysistype not found in JSON"}, 404
         analysistype = request.json['analysistype']
 
         if 'reference' not in request.json:
-            return {"Status": "error", "Message": "reference not found in JSON"}, 404
+            return {"status": "error", "message": "reference not found in JSON"}, 404
         reference = request.json['reference']
 
-        # user is required for _submitJob
-        if request.json and 'user' in request.json:
-            user = request.json['user']
-        else:
-            user = current_user.username
+        if 'user' not in request.json:
+            return {"status": "error", "message": "user not found"}, 404        
+        user = request.json['user']
 
         if analysistype == 'RNA-Seq':
             job_cmd = {

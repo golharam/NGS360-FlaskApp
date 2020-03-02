@@ -405,14 +405,14 @@
     function exportResultsToS3(projectid, projectType, reference) {
         jobStatusDialog = showJobStatusDialog("Exporting SevenBridges results to S3", null, null)
         url = "/api/v0/projects/" + projectid + "/copyAnalysisResults";
-        data = {"analysistype": projectType, "reference": reference, "username": userid};
+        data = {"analysistype": projectType, "reference": reference, "user": userid};
         $.ajax({type: "POST",
                 url: url,
                 data: JSON.stringify(data),
                 contentType: "application/json",
                 success: function(data) {
-                    if (('status' in data) && (data['status'] == 'ERROR')) {
-                        jobStatusDialog.setMessage(data['log'])
+                    if (('status' in data) && (data['status'] == 'error')) {
+                        jobStatusDialog.setMessage(data['message'])
                     } else {
                         jobStatusDialog.setData('jobName', data['jobName']);
                         jobStatusDialog.setData('jobId', data['jobId']);
