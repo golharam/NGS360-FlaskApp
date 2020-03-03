@@ -5,10 +5,28 @@ import datetime
 from io import BytesIO
 import unittest
 from unittest import TestCase
-from moto import mock_s3, mock_batch, mock_iam
+from moto import mock_s3, mock_batch, mock_iam, mock_lambda
+import zipfile
+
 from app import create_app, DB as db, BOTO3 as boto3
 from app.models import SequencingRun
 from config import TestConfig
+
+def _process_lambda(func_str):
+    zip_output = BytesIO()
+    zip_file = zipfile.ZipFile(zip_output, "w", zipfile.ZIP_DEFLATED)
+    zip_file.writestr("lambda_function.py", func_str)
+    zip_file.close()
+    zip_output.seek(0)
+    return zip_output.read()
+
+
+def get_test_zip_file1():
+    pfunc = """
+def lambda_handler(event, context):
+    return event
+"""
+    return _process_lambda(pfunc)
 
 class RunsTests(TestCase):
     def setUp(self):
@@ -290,6 +308,88 @@ class RunsTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue('jobName' in response.json)
         self.assertTrue('jobId' in response.json)
+
+    @mock_iam
+    @mock_batch
+    def test_post_demultiplex_edgeseq(self):
+        # Set up test case
+        data = {'ASSAY': 'EdgeSeq'}
+        # Set up supporting mocks
+        boto3.clients['batch'].register_job_definition(
+            jobDefinitionName="job",
+            type="container",
+            containerProperties={
+                "image": "busybox",
+                "vcpus": 1,
+                "memory": 128,
+                "command": ["sleep", "10"],
+            })
+        resp = boto3.clients["iam"].create_role(
+            RoleName="TestRole", AssumeRolePolicyDocument="some_policy")
+        iam_arn = resp["Role"]["Arn"]
+        env = boto3.clients['batch'].create_compute_environment(
+            computeEnvironmentName='compute_name',
+            type="UNMANAGED",
+            state="ENABLED",
+            serviceRole=iam_arn)
+        boto3.clients['batch'].create_job_queue(
+            jobQueueName="queue",
+            state="ENABLED",
+            priority=123,
+            computeEnvironmentOrder=[{"order": 123, "computeEnvironment": env['computeEnvironmentArn']}])
+
+        self.app.config['BCL2FASTQ_JOB'] = "job"
+        self.app.config['BCL2FASTQ_QUEUE'] = "queue"
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
+                            run_number='1', flowcell_id='000000001',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        db.session.commit()
+        # Test
+        response = self.client.post('/api/v0/runs/1/demultiplex?user=testuser', json=data)
+        # Check results
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue('jobName' in response.json)
+        self.assertTrue('jobId' in response.json)
+
+    @mock_iam
+    @mock_lambda
+    @mock_batch
+    def test_post_demultiplex_scrnaseq(self):
+        # Set up test case
+        data = {'ASSAY': 'scRNASeq',
+                'user': 'testuser',
+                's3_runfolder_path': 's3://somebucket/PHIX3_test',
+                'reference': 'hg38'}
+        # Set up supporting mocks
+        resp = boto3.clients["iam"].create_role(
+            RoleName="TestRole", AssumeRolePolicyDocument="some_policy")
+        iam_arn = resp["Role"]["Arn"]
+        boto3.clients['lambda'].create_function(
+            FunctionName="somelambdafn",
+            Runtime="python3.6",
+            Role=iam_arn,
+            Handler="lambda_function.lambda_handler",
+            Code={"ZipFile": get_test_zip_file1()},
+            Description="test lambda function",
+            Timeout=3,
+            MemorySize=128,
+            Publish=True)
+
+        self.app.config['SCRNASEQ_LAMBDA_FN'] = "somelambdafn"
+        run_date = datetime.date(2019, 1, 10)
+        run = SequencingRun(id=1, run_date=run_date, machine_id='M00123',
+                            run_number='1', flowcell_id='000000001',
+                            experiment_name='PHIX3 test',
+                            s3_run_folder_path='s3://somebucket/PHIX3_test')
+        db.session.add(run)
+        db.session.commit()
+        # Test
+        response = self.client.post('/api/v0/runs/1/demultiplex?user=testuser', json=data)
+        # Check results
+        self.assertEqual(response.status_code, 200)
 
     def test_put_samples(self):
         # Set up test parameters

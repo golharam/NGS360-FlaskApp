@@ -56,6 +56,7 @@ def create_app(config_class=DefaultConfig):
 
     app.logger.info("AWS Batch Job Definition: %s", app.config['JOB_DEFINITION'])
     app.logger.info("AWS Batch Job Queue: %s", app.config['JOB_QUEUE'])
+    app.logger.info("scRNASeq Lambda Function: %s", app.config['SCRNASEQ_LAMBDA_FN'])
 
     DB.init_app(app)
     MIGRATE.init_app(app, DB)
