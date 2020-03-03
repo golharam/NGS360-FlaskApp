@@ -129,16 +129,18 @@ class DemultiplexRun(Resource):
                 "vcpus": 8
             }
         elif request.json and 'ASSAY' in request.json and request.json['ASSAY'] == "scRNASeq":
-            data = {"user": request.json['user'],
-                    "s3_runfolder_path": run.s3_run_folder_path,
-                    "reference": request.json['reference']}
+            data = {"cmd": ["run",
+                            "-u", user,
+                            "-r", run.s3_run_folder_path,
+                            "-d"]}
+            payload = json.dumps(data)
             response = boto3.clients['lambda'].invoke(
                 FunctionName=current_app.config['SCRNASEQ_LAMBDA_FN'],
                 InvocationType='RequestResponse',
                 LogType='None',
-                Payload=json.dumps(data))
+                Payload=payload)
             payload = response['Payload'].read()
-            return payload
+            return {}
         else:
             # Perform standard demultiplexing
             job_name = 'demultiplex-%s' % run_barcode

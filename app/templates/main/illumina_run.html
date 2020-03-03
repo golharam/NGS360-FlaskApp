@@ -49,9 +49,7 @@
         <li onclick="confirmRunAnalysis(0, 'bcl2fastq: Standard (no lane splitting)')"><a href="#">bcl2fastq: Standard (no lane splitting)</a></li>
         <li onclick="confirmRunAnalysis(1, 'bcl2fastq: EdgeSeq (no mismatches)')"><a href="#">bcl2fastq: EdgeSeq (no mismatches)</a></li>
         <li class="divider"></li>
-        <li onclick="confirmRunAnalysis(2, '10X CellRanger (hg38)')"><a href="#">10X CellRanger (hg38)</a></li>
-        <li onclick="confirmRunAnalysis(3, '10X CellRanger (mm10)')"><a href="#">10X CellRanger (mm10)</a></li>
-        <li onclick="confirmRunAnalysis(4, '10X CellRanger (Cyno)')"><a href="#">10X CellRanger (Cyno)</a></li>
+        <li onclick="confirmRunAnalysis(2, '10X CellRanger')"><a href="#">10X CellRanger</a></li>
       </ul>
     </span>
 </span>
@@ -468,20 +466,14 @@
            optionSet is one of:
            0 - bcl2fastq: Standard (no lane splitting)
            1 - bcl2fastq: EdgeSeq (no mismatches)
-           2 - 10X CellRanger (hg38)
-           3 - 10X CellRanger (mm10)
-           4 - 10X CellRanger (Cyno)
+           2 - 10X CellRanger
         */
         jobStatusDialog = showJobStatusDialog("Run Analysis", null, null);
         postData = JSON.stringify({});
         if (optionSet == 1) {
             postData = JSON.stringify({ 'ASSAY': 'EdgeSeq' });
         } else if (optionSet == 2) {
-            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'hg38', 'user': "{{current_user.username}}"});
-        } else if (optionSet == 3) {
-            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'mm10', 'user': "{{current_user.username}}"});
-        } else if (optionSet == 4) {
-            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'reference': 'cyno', 'user': "{{current_user.username}}"});
+            postData = JSON.stringify({ 'ASSAY': 'scRNASeq', 'user': "{{current_user.username}}"});
         }
         $.ajax({
             url: "/api/v0/runs/{{runid}}/demultiplex?user={{current_user.username}}",
@@ -492,9 +484,11 @@
             success: function(data) {
                 if ('jobs' in data) {
                     jobStatusDialog.setMessage("Analysis pipeline started multiple jobs.  Please refer to <a href='/jobs'>Jobs</a> page for status/log information.")
-                } else {
+                } else if ('jobName' in data) {
                     jobStatusDialog.setData('jobName', data['jobName']);
                     jobStatusDialog.setData('jobId', data['jobId']);
+                } else {
+                    jobStatusDialog.setMessage('There was an error running the pipeline.');
                 }
             },
             error: function(data) {
