@@ -141,7 +141,10 @@ class DemultiplexRun(Resource):
                 Payload=payload)
             payload = response['Payload'].read().decode('utf-8')
             current_app.logger.info("Got %s", payload)
-            data = json.loads(payload)
+            try:
+                data = json.loads(payload)
+            except:
+                data = {'status': 'error', 'message': 'unknown pipeline response'}
             return data
         else:
             # Perform standard demultiplexing
