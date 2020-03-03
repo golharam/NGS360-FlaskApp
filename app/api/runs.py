@@ -139,8 +139,10 @@ class DemultiplexRun(Resource):
                 InvocationType='RequestResponse',
                 LogType='None',
                 Payload=payload)
-            payload = response['Payload'].read()
-            return {}
+            payload = response['Payload'].read().decode('utf-8')
+            current_app.logger.info("Got %s", payload)
+            data = json.loads(payload)
+            return data
         else:
             # Perform standard demultiplexing
             job_name = 'demultiplex-%s' % run_barcode
