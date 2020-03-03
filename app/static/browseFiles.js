@@ -71,6 +71,41 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
 browseFilesDialog.prototype.show = function () {
     url = "/api/v0/files?bucket="+this.bucket+"&prefix="+this.prefix+"/";
     var self = this;
+
+    $('#fileBrowserModal').html(`<div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel"></h4>
+              </div>
+              <div class="modal-body">
+                <div class="table-responsive">
+                  <table id="listr-table" class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th class="text-xs-left " data-sort="string">Name</th>
+                        <th class="text-xs-right " data-sort="int">Size</th>
+                        <th class="text-xs-right " data-sort="int">Modified</th>
+                      </tr>
+                    </thead>
+                    <tfoot>
+                      <tr>
+                        <td colspan="3"></td>
+                      </tr>
+                    </tfoot>
+                    <tbody id="directorylist">
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>`);
+
     $("#directorylist").empty();
     $.get(url, function (data) {
         self.populateDirectoryList(data);
