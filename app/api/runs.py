@@ -131,8 +131,7 @@ class DemultiplexRun(Resource):
         elif request.json and 'ASSAY' in request.json and request.json['ASSAY'] == "scRNASeq":
             data = {"cmd": ["run",
                             "-u", user,
-                            "-r", run.s3_run_folder_path,
-                            "-d"]}
+                            "-r", run.s3_run_folder_path]}
             payload = json.dumps(data)
             response = boto3.clients['lambda'].invoke(
                 FunctionName=current_app.config['SCRNASEQ_LAMBDA_FN'],
