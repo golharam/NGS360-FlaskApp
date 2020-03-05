@@ -34,10 +34,8 @@ def show_batch_jobs():
     ''' Show user jobs '''
     if 'username' in request.args:
         username = request.args.get('username')
-    elif 'username' in session:
-        username = session['username']
     else:
-        username = None
+        username = current_user.username
     return render_template('main/jobs.html', username=username)
 
 @BP.route("/jobs/<jobid>/log")
