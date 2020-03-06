@@ -20,6 +20,50 @@ browseFilesDialog.prototype.populateDirectoryList = function (directory) {
     var currentDirectoryPath = this.currentDirectoryPath;
     var prefix = this.prefix;
     var self = this;
+
+    var directoryTable = $('#directorytable').DataTable({
+        ajax: {
+            url: "/api/v0/files?bucket="+bucket+"&prefix="+prefix+"/",
+            dataSrc:  function (json) {
+                allElements = [];
+                $.each(json.folders, function(idx, elem) {
+                    elem.folder = true;
+                    allElements.push(elem);
+                });
+                $.each(json.files, function(idx, elem) {
+                    elem.folder = false;
+                    allElements.push(elem);
+                });
+                return allElements;
+            }
+        },
+        columns: [
+            { data: "name", orderable: false,
+              render: function ( data, type, row, meta ) {
+                  var stripped_name = data.replace(currentDirectoryPath, "");
+                  if (row.folder === true){
+                      return '<i class="fa fa-fw fa-folder " aria-hidden="true"></i>&nbsp;<a href="#" id="'+data+'"><strong>'+stripped_name+'</strong></a>';
+                  } else {
+                      var url = "/api/v0/files/download?bucket="+bucket+"&key="+data;
+                      return '<i class="fa fa-fw"></i>&nbsp;<a href="'+url+'">'+stripped_name+'</a>';
+                  }
+              }
+            },
+            { data: "size", "orderable": false },
+            { data: "date", "orderable": false }
+        ],
+        order: [],
+        deferRender: true,
+        searching: true,
+        paging: true,
+    });
+
+    //$("#refreshSampleListButton").on("click", function(){
+    //    projectSampleTable.ajax.url("/api/v0/samples?project_id={{projectid}}&refresh=true").load();
+    //});
+
+    $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
+
     // show "Up one level", if we are in a subdirectory
     if (this.currentDirectoryPath != (this.prefix + "/")) {
          $("#directorylist").append('<tr><td class="text-xs-left">' +
@@ -98,6 +142,17 @@ browseFilesDialog.prototype.show = function () {
                     <tbody id="directorylist">
                     </tbody>
                   </table>
+                </div>
+                <div class="table-responsive">
+                <table id="directorytable" class="table table-hover" width="100%">
+                    <thead>
+                    <tr>
+                        <th class="text-xs-left">Name</th>
+                        <th class="text-xs-right">Size</th>
+                        <th class="text-xs-right">Modified</th>
+                    </tr>
+                    </thead>
+                </table>
                 </div>
               </div>
               <div class="modal-footer">
