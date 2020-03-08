@@ -8,7 +8,6 @@ var browseFilesDialog = function (bucket, prefix) {
 
 browseFilesDialog.prototype.populateDirectoryList = function () {
     var bucket = this.bucket;
-    var currentDirectoryPath = this.currentDirectoryPath;
     var prefix = this.prefix;
     var self = this;
 
@@ -79,34 +78,9 @@ browseFilesDialog.prototype.populateDirectoryList = function () {
 browseFilesDialog.prototype.show = function () {
     var self = this;
 
-    $('#fileBrowserModal').html(`<div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-                <h4 class="modal-title" id="myModalLabel"></h4>
-              </div>
-              <div class="modal-body">
-                <div class="table-responsive">
-                <table id="directorytable" class="table table-hover" width="100%">
-                    <thead>
-                    <tr>
-                        <th class="text-xs-left">Name</th>
-                        <th class="text-xs-right">Size</th>
-                        <th class="text-xs-right">Modified</th>
-                    </tr>
-                    </thead>
-                </table>
-                </div>
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-              </div>
-            </div>
-          </div>`);
-
-    self.populateDirectoryList();
+    $('#fileBrowserModal').load('/static/browseFiles.html', function( response, status, xhr ) {
+        self.populateDirectoryList();
+    });
     $('#myModalLabel').text("Files for " + this.bucket + "/" + this.prefix + "/");
     $('#fileBrowserModal').modal();
 };
