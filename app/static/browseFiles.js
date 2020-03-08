@@ -22,7 +22,8 @@ browseFilesDialog.prototype.populateDirectoryList = function () {
                 };
                 $.each(json.folders, function(idx, elem) {
                     elem.type = 'folder';
-                    elem.size = '-';
+                    elem.size = '';
+                    elem.date = '';
                     allElements.push(elem);
                 });
                 $.each(json.files, function(idx, elem) {
@@ -54,7 +55,8 @@ browseFilesDialog.prototype.populateDirectoryList = function () {
                           $('#myModalLabel').text("Files for " + bucket + "/" + self.currentDirectoryPath);
                           directoryTable.ajax.url("/api/v0/files?bucket="+bucket+"&prefix="+newPath).load();
                       };
-                      return '<i class="fa fa-fw fa-folder" aria-hidden="true"></i>&nbsp;<a href="#" onclick="navigateFolder(String.raw`'+data+'`)"><strong>'+stripped_name+'</strong></a>';
+                      folderNameNoTrailingSlash = stripped_name.replace("/", "");
+                      return '<i class="fa fa-fw fa-folder" aria-hidden="true"></i>&nbsp;<a href="#" onclick="navigateFolder(String.raw`'+data+'`)"><strong>'+folderNameNoTrailingSlash+'</strong></a>';
                   } else { // These are files
                       var url = "/api/v0/files/download?bucket="+bucket+"&key="+data;
                       return '<i class="fa fa-fw"></i>&nbsp;<a href="'+url+'">'+stripped_name+'</a>';
