@@ -79,8 +79,8 @@ browseFilesDialog.prototype.show = function () {
     var self = this;
 
     $('#fileBrowserModal').load('/static/browseFiles.html', function( response, status, xhr ) {
+        $('#myModalLabel').text("Files for " + self.bucket + "/" + self.prefix + "/");
         self.populateDirectoryList();
     });
-    $('#myModalLabel').text("Files for " + this.bucket + "/" + this.prefix + "/");
     $('#fileBrowserModal').modal();
 };
