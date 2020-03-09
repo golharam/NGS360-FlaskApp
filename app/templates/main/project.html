@@ -410,7 +410,8 @@
 
     function copyBaseSpaceFastQFilesToS3(projectid) {
         jobStatusDialog = showJobStatusDialog("Copying fastq files to S3", null, null)
-        $.get("/copyBaseSpaceProjectToS3/" + projectid, function(data) {
+        url = "/api/v0/projects/" + projectid + "/copyBaseSpaceProjectToS3?user="+userid;
+        $.get(url, function(data) {
             if (('status' in data) && (data['status'] == 'ERROR')) {
                 jobStatusDialog.setMessage(data['log'])
             } else {

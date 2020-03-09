@@ -124,6 +124,18 @@ class ProjectIDToBaseSpaceProject(Resource):
     def get(self, projectid):
         return base_space.get_project_id(projectid)
 
+@NS.route("/<projectid>/copyBaseSpaceProjectToS3")
+class copyBaseSpaceProjectToS3(Resource):
+    def get(self, projectid):
+        if 'user' not in request.args:
+            return {"status": "error", "message": "No user specified"}, 404
+        job_name = 'copyBaseSpaceProject-%s' % projectid
+        job_cmd = {'command' : ['basespace', 'copyFastqFiles', '-p', projectid,
+                                '--merge']
+        }
+        return submit_job(job_name, job_cmd, current_app.config['JOB_DEFINITION'],
+                          current_app.config['JOB_QUEUE'], request.args['user'])
+
 @NS.route("/<projectid>/createSevenBridgesProject/<projecttype>")
 class CreateSevenBridgesProject(Resource):
     def get(self, projectid, projecttype):
@@ -174,7 +186,7 @@ class CopyAnalysisResultsAction(Resource):
         reference = request.json['reference']
 
         if 'user' not in request.json:
-            return {"status": "error", "message": "user not found"}, 404        
+            return {"status": "error", "message": "user not found"}, 404
         user = request.json['user']
 
         if analysistype == 'RNA-Seq':
