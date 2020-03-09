@@ -11,7 +11,6 @@ class BlueprintMainTests(TestCase):
     ''' Basic test cases '''
     def setUp(self):
         test_config = TestConfig()
-        test_config.LOGIN_DISABLED = True
         self.app = create_app(test_config)
         self.app_context = self.app.app_context()
         self.app_context.push()
@@ -24,13 +23,27 @@ class BlueprintMainTests(TestCase):
         self.client = None
         self.app_context.pop()
 
+    def login(self):
+        user = User(username='testuser',
+                    email='testuser@nowhere.com')
+        user.set_password('password')
+        db.session.add(user)
+        db.session.commit()
+
+        return self.client.post('/login', data=dict(
+            username='testuser',
+            password='password'
+        ), follow_redirects=True)
+
     def test_index(self):
         ''' Test / '''
+        self.login()
         res = self.client.get('/')
         assert b'<title>NGS 360</title>' in res.data
 
     def test_basespace(self):
         ''' Test /basespace '''
+        rv = self.login()
         res = self.client.get('/basespace')
         assert res.status_code == 200
 
@@ -39,33 +52,31 @@ class BlueprintMainTests(TestCase):
 
     def test_projects(self):
         ''' Test /projects '''
+        self.login()
         res = self.client.get('/projects')
         assert res.status_code == 200
 
     def test_project(self):
         ''' Test /projects/P-1 '''
+        self.login()
         res = self.client.get('/projects/P-1')
         assert res.status_code == 200
 
     def test_jobs(self):
         ''' Test /jobs '''
+        self.login()
         res = self.client.get('/jobs')
         assert res.status_code == 200
 
     def test_jobs_user_in_request(self):
         ''' Test /jobs '''
+        self.login()
         res = self.client.get('/jobs?username=testuser')
-        assert res.status_code == 200
-
-    def test_jobs_user_in_session(self):
-        ''' Test /jobs '''
-        with self.client.session_transaction() as sess:
-            sess['username'] = 'testuser'
-        res = self.client.get('/jobs')
         assert res.status_code == 200
 
     def test_illumina_runs(self):
         ''' Test /illumina_runs '''
+        self.login()
         res = self.client.get('/illumina_runs')
         assert res.status_code == 200
 

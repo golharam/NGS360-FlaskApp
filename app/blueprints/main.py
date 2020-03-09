@@ -1,7 +1,7 @@
 '''
 Main application endpoints
 '''
-from flask import Blueprint, render_template, request, session, jsonify, current_app, abort
+from flask import Blueprint, render_template, request, jsonify, current_app, abort
 from flask_login import login_required, current_user
 from app import project_registry, BASESPACE as base_space, DB as db
 from app.models import Project, RunToSamples, SequencingRun, BatchJob
