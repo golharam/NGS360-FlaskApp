@@ -6,75 +6,81 @@ var browseFilesDialog = function (bucket, prefix) {
     this.currentDirectoryPath = prefix + "/";
 };
 
-browseFilesDialog.prototype.updateDirectoryFolder = function (newDirectory) {
-    directory = newDirectory;
-    $("#directorylist").empty();
-    $('#myModalLabel').text("Files for " + this.bucket + "/" + this.currentDirectoryPath);
-    this.populateDirectoryList(directory);
-};
-
-browseFilesDialog.prototype.populateDirectoryList = function (directory) {
-    var folders = directory.folders;
-    var files = directory.files;
+browseFilesDialog.prototype.populateDirectoryList = function () {
     var bucket = this.bucket;
-    var currentDirectoryPath = this.currentDirectoryPath;
     var prefix = this.prefix;
     var self = this;
-    // show "Up one level", if we are in a subdirectory
-    if (this.currentDirectoryPath != (this.prefix + "/")) {
-         $("#directorylist").append('<tr><td class="text-xs-left">' +
-             '<a href="#" id="folderlevelup">' +
-               '<span class="glyphicon glyphicon-level-up" aria-hidden="true"></span>&nbsp;Up a level' +
-             '</a></td>' +
-             '<td class="text-xs-right"></td>' +
-             '<td class="text-xs-right"></td></tr>');
 
-        $("#folderlevelup").click(function() {
-            var tmpParentDirectoryPath = currentDirectoryPath.split("/");
-            tmpParentDirectoryPath = tmpParentDirectoryPath.slice(0, tmpParentDirectoryPath.length-2);
-            tmpParentDirectoryPath = tmpParentDirectoryPath.join("/") + "/";
-            $.get("/api/v0/files?bucket="+bucket+"&prefix="+tmpParentDirectoryPath, function (data) {
-                self.currentDirectoryPath = tmpParentDirectoryPath;
-                self.updateDirectoryFolder(data);
-            });
-        });
-    };
-    // show folders
-    $.each(folders, function(idx, elem) {
-         var anchorId = "navFolder" + idx;
-         var stripped_name = elem.name.replace(currentDirectoryPath, "");
-         $("#directorylist").append('<tr><td class="text-xs-left" data-sort-value="elem.name | lower">' +
-             '<i class="fa fa-fw fa-folder " aria-hidden="true"></i>&nbsp;' +
-             '<a href="#" id="'+anchorId+'"><strong>'+stripped_name+'</strong></a></td>' +
-             '<td class="text-xs-right" data-sort-value="-1">&mdash;</td>' +
-             '<td class="text-xs-right" data-sort-value="elem.date" title="elem.date">'+elem.date+'</td></tr>');
-         $("#"+anchorId).click(function(){
-             $.get("/api/v0/files?bucket="+bucket+"&prefix="+elem.name, function (data) {
-                 directory = data;
-                 self.currentDirectoryPath = elem.name;
-                 self.updateDirectoryFolder(data);
-             });
-         });
+    var directoryTable = $('#directorytable').DataTable({
+        ajax: {
+            url: "/api/v0/files?bucket="+bucket+"&prefix="+prefix+"/",
+            dataSrc:  function (json) {
+                allElements = [];
+                if (self.currentDirectoryPath !== (prefix+"/")) {
+                    allElements.push({name: '', type: 'navigator', size: '', date: ''});
+                };
+                $.each(json.folders, function(idx, elem) {
+                    elem.type = 'folder';
+                    elem.size = '';
+                    elem.date = '';
+                    allElements.push(elem);
+                });
+                $.each(json.files, function(idx, elem) {
+                    elem.type = 'file';
+                    allElements.push(elem);
+                });
+                return allElements;
+            }
+        },
+        columns: [
+            { data: "name", orderable: false,
+              render: function ( data, type, row, meta ) {
+                  var stripped_name = data.replace(self.currentDirectoryPath, "");
+
+                  // show "Up one level", if we are in a subdirectory
+                  if (row.type === 'navigator') {
+                      folderLevelUp = function() {
+                          var tmpParentDirectoryPath = self.currentDirectoryPath.split("/");
+                          tmpParentDirectoryPath = tmpParentDirectoryPath.slice(0, tmpParentDirectoryPath.length-2);
+                          tmpParentDirectoryPath = tmpParentDirectoryPath.join("/") + "/";
+                          self.currentDirectoryPath = tmpParentDirectoryPath;
+                          $('#myModalLabel').text("Files for " + bucket + "/" + self.currentDirectoryPath);
+                          directoryTable.ajax.url("/api/v0/files?bucket="+bucket+"&prefix="+self.currentDirectoryPath).load();
+                      };
+                      return '<a href="#" onclick="folderLevelUp()"><span class="glyphicon glyphicon-level-up" aria-hidden="true"></span>&nbsp;Up a level</a>';
+                  } else if (row.type === 'folder') {
+                      navigateFolder = function (newPath) {
+                          self.currentDirectoryPath = newPath;
+                          $('#myModalLabel').text("Files for " + bucket + "/" + self.currentDirectoryPath);
+                          directoryTable.ajax.url("/api/v0/files?bucket="+bucket+"&prefix="+newPath).load();
+                      };
+                      folderNameNoTrailingSlash = stripped_name.replace("/", "");
+                      return '<i class="fa fa-fw fa-folder" aria-hidden="true"></i>&nbsp;<a href="#" onclick="navigateFolder(String.raw`'+data+'`)"><strong>'+folderNameNoTrailingSlash+'</strong></a>';
+                  } else { // These are files
+                      var url = "/api/v0/files/download?bucket="+bucket+"&key="+data;
+                      return '<i class="fa fa-fw"></i>&nbsp;<a href="'+url+'">'+stripped_name+'</a>';
+                  }
+              }
+            },
+            { data: "size", "orderable": false },
+            { data: "date", "orderable": false }
+        ],
+        order: [],
+        deferRender: true,
+        searching: true,
+        paging: true,
     });
-    // show files
-    $.each(files, function(idx, elem) {
-         var stripped_filename = elem.name.replace(currentDirectoryPath, "");
-         var url = "/api/v0/files/download?bucket="+bucket+"&key="+elem.name;
-         $("#directorylist").append('<tr><td class="text-xs-left" data-sort-value="file-entry.name | lower">' +
-             '<i class="fa fa-fw elem.name" aria-hidden="true"></i>&nbsp;' +
-             '<a href="'+url+'">'+stripped_filename+'</a></td>' +
-             '<td class="text-xs-right" data-sort-value="elem.size" title="elem.size bytes">'+elem.size+'</td>' +
-             '<td class="text-xs-right" data-sort-value="elem.date" title="elem.date">'+elem.date+'</td></tr>');
-    });
+
+    $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) {console.log(message)};
+
 };
 
 browseFilesDialog.prototype.show = function () {
-    url = "/api/v0/files?bucket="+this.bucket+"&prefix="+this.prefix+"/";
     var self = this;
-    $("#directorylist").empty();
-    $.get(url, function (data) {
-        self.populateDirectoryList(data);
+
+    $('#fileBrowserModal').load('/static/browseFiles.html', function( response, status, xhr ) {
+        $('#myModalLabel').text("Files for " + self.bucket + "/" + self.prefix + "/");
+        self.populateDirectoryList();
     });
-    $('#myModalLabel').text("Files for " + this.bucket + "/" + this.prefix + "/");
     $('#fileBrowserModal').modal();
 };
