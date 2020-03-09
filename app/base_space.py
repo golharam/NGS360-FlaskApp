@@ -30,17 +30,18 @@ class BaseSpace:
         self.api_endpoint = app.config.get('BASESPACE_ENDPOINT')
         self.access_token = app.config.get('BASESPACE_TOKEN')
         self.userid = self.get_user_id()
+        self.app.logger.debug("BaseSpace User ID: %s", self.userid)
 
     def get_user_id(self):
         """ Return the current user's id """
-        userid = None
+        self.userid = None
         if self.api_endpoint and self.access_token:
             url = '%s/users/current?access_token=%s' % (self.api_endpoint, self.access_token)
+            self.app.logger.debug("Getting user id from %s", url)
             data = get_json(url)
             if data and 'Response' in data:
-                response = data['Response']
-                userid = response['Id']
-        return userid
+                self.userid = data['Response']['Id']
+        return self.userid
 
     def get_paginated_results(self, url):
         retval = []
@@ -49,6 +50,7 @@ class BaseSpace:
         while True:
             paginated_url = '%s?Limit=%s&Offset=%s&access_token=%s' % (url, limit, offset,
                                                                        self.access_token)
+            self.app.logger.debug("Calling %s", paginated_url)
             data = get_json(paginated_url)
             if not data:
                 break
@@ -75,7 +77,8 @@ class BaseSpace:
         Returns a list of project.  Assumes get_user_id was called during initialization.
         """
         if self.userid:
-            url = '%s/users/%s/runs' % (self.api_endpoint, self.userid)
+            url = '%s/users/%s/projects' % (self.api_endpoint, self.userid)
+            self.app.logger.debug("Retrieving list of projects from %s", url)
             projects = self.get_paginated_results(url)
         else:
             projects = []
@@ -89,27 +92,22 @@ class BaseSpace:
             if project['Name'] == project_name:
                 return project['Id']
         return None
-'''
 
-    def getProjectSamples(self, projectid):
+    def get_project_samples(self, projectid):
         """ Returns a list of samples for a BaseSpace projectid
         :param projectid: BaseSpace Project ID
         :return: JSON list of sample names and IDs
         """
         retVal = []
-        url = '%s/projects/%s/samples?Limit=1024&Offset=0&access_token=%s' % \
-            (self.baseUrl, projectid, self.accessToken)
-        data = getJSON(url)
-        if not data:
-            return retVal
-
-        response = data['Response']
-        samples = response['Items']
-        for sample in samples:
-            logger.debug(sample)
-            retVal.append({'Name': sample['Name'], 'Id': sample['Id']})
+        url = '%s/projects/%s/samples' % (self.api_endpoint, projectid)
+        self.app.logger.debug("Getting list of samples in project from %s", url)
+        data = self.get_paginated_results(url)
+        if data:
+            for sample in data:
+                retVal.append({'Name': sample['Name'], 'Id': sample['Id']})
         return retVal
 
+'''
     def getRun(self, runID):
         """ Return a run """
         logger.debug("Retrieving run")
