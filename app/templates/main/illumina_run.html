@@ -454,6 +454,8 @@
                 } else if ('jobName' in data) {
                     jobStatusDialog.setData('jobName', data['jobName']);
                     jobStatusDialog.setData('jobId', data['jobId']);
+                } else if ('message' in data) {
+                    jobStatusDialog.setMessage(data['message']);
                 } else {
                     jobStatusDialog.setMessage('There was an error running the pipeline.');
                 }
