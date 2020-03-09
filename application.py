@@ -3,7 +3,7 @@ Main application entry point
 '''
 from os.path import dirname, join
 from dotenv import load_dotenv
-from app import create_app, DB
+from app import create_app, DB, BASESPACE
 from app.models import BatchJob, Notification, SequencingRun, User
 
 dotenv_path = join(dirname(__file__), '.env')
@@ -18,7 +18,8 @@ def make_shell_context():
             'BatchJob': BatchJob,
             'Notification': Notification,
             'SequencingRun': SequencingRun,
-            'User': User}
+            'User': User,
+            'baseSpace': BASESPACE}
 
 # Run the application
 if __name__ == "__main__":

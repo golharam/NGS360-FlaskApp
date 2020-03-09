@@ -15,7 +15,7 @@ from flask_restplus import Namespace, Resource
 from app.models import Project, RunToSamples, SequencingRun
 from app.biojira import get_jira, get_jira_issues, add_comment_to_issues
 from app.blueprints.aws_batch import submit_job
-from app import SEVENBRIDGES as sbg, DB as db, project_registry
+from app import SEVENBRIDGES as sbg, DB as db, project_registry, BASESPACE as base_space
 
 NS = Namespace('projects', description='Project related operations')
 
@@ -118,6 +118,11 @@ class ProjectList(Resource):
             result = self.get(projectid)
             return result, 201
         abort(404)
+
+@NS.route("/<projectid>/getBaseSpaceProject")
+class ProjectIDToBaseSpaceProject(Resource):
+    def get(self, projectid):
+        return base_space.get_project_id(projectid)
 
 @NS.route("/<projectid>/createSevenBridgesProject/<projecttype>")
 class CreateSevenBridgesProject(Resource):

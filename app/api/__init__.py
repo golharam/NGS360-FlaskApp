@@ -7,6 +7,7 @@ from datetime import timedelta
 from flask import Blueprint, current_app, request, session
 from flask_restplus import Api
 
+from .basespace import NS as basespace_ns
 from .files import NS as files_ns
 from .jobs import NS as jobs_ns
 from .notifications import NS as notifications_ns
@@ -67,6 +68,7 @@ API = Api(BLUEPRINT,
           version="1.0",
           description="Provide REST API endpoints for NGS 360")
 
+API.add_namespace(basespace_ns)
 API.add_namespace(files_ns)
 API.add_namespace(jobs_ns)
 API.add_namespace(notifications_ns)
